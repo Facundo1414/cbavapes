@@ -1,103 +1,212 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import FilterBar from '@/components/FilterBar';
+import ProductList from '@/components/ProductList';
+
+type Product = {
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  image: string;
+  available?: boolean;
+};
+
+const products: Product[] = [
+  {
+    id: 1,
+    name: 'Lost Mary 30K',
+    category: 'Lost Mary',
+    price: 3000,
+    image: 'https://picsum.photos/id/1011/400/300',
+  },
+  {
+    id: 2,
+    name: 'Priv Bar 15K',
+    category: 'Priv Bar',
+    price: 1500,
+    image: 'https://picsum.photos/id/1012/400/300',
+  },
+  {
+    id: 3,
+    name: 'Elfbar 30K TE',
+    category: 'Elfbar',
+    price: 3200,
+    image: 'https://picsum.photos/id/1013/400/300',
+  },
+  {
+    id: 4,
+    name: 'Rabbeats Touch 10K',
+    category: 'Rabbeats',
+    price: 1200,
+    image: 'https://picsum.photos/id/1014/400/300',
+    available: false,
+  },
+  {
+    id: 5,
+    name: 'Lost Mary 15K',
+    category: 'Lost Mary',
+    price: 1700,
+    image: 'https://picsum.photos/id/1015/400/300',
+  },
+  {
+    id: 6,
+    name: 'Priv Bar 30K',
+    category: 'Priv Bar',
+    price: 2800,
+    image: 'https://picsum.photos/id/1016/400/300',
+  },
+  {
+    id: 7,
+    name: 'Elfbar 15K',
+    category: 'Elfbar',
+    price: 1600,
+    image: 'https://picsum.photos/id/1018/400/300',
+  },
+  {
+    id: 8,
+    name: 'Rabbeats Touch 15K',
+    category: 'Rabbeats',
+    price: 1700,
+    image: 'https://picsum.photos/id/1019/400/300',
+  },
+  {
+    id: 9,
+    name: 'Lost Mary Ice 20K',
+    category: 'Lost Mary',
+    price: 2200,
+    image: 'https://picsum.photos/id/1020/400/300',
+  },
+  {
+    id: 10,
+    name: 'Priv Bar Ice 20K',
+    category: 'Priv Bar',
+    price: 2100,
+    image: 'https://picsum.photos/id/1021/400/300',
+  },
+  {
+    id: 11,
+    name: 'Elfbar Max 50K',
+    category: 'Elfbar',
+    price: 5500,
+    image: 'https://picsum.photos/id/1022/400/300',
+  },
+  {
+    id: 12,
+    name: 'Rabbeats Mini 10K',
+    category: 'Rabbeats',
+    price: 1100,
+    image: 'https://picsum.photos/id/1023/400/300',
+  },
+  {
+    id: 13,
+    name: 'Lost Mary Pro 25K',
+    category: 'Lost Mary',
+    price: 2500,
+    image: 'https://picsum.photos/id/1024/400/300',
+  },
+  {
+    id: 14,
+    name: 'Priv Bar Pro 25K',
+    category: 'Priv Bar',
+    price: 2600,
+    image: 'https://picsum.photos/id/1025/400/300',
+  },
+  {
+    id: 15,
+    name: 'Elfbar Nano 15K',
+    category: 'Elfbar',
+    price: 1700,
+    image: 'https://picsum.photos/id/1026/400/300',
+  },
+];
+
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const categories = Array.from(new Set(products.map((p) => p.category)));
+  const [category, setCategory] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+useEffect(() => {
+  // Al entrar a la página
+  document.body.classList.add('no-scroll');
+
+  // Al salir de la página
+  return () => {
+    document.body.classList.remove('no-scroll');
+  };
+}, []);
+
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const options = {
+      root: container,
+      rootMargin: '-50% 0px -50% 0px', // 🔧 menos exigente
+      threshold: 0,
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const cat = entry.target.getAttribute('data-category');
+        if (entry.isIntersecting && cat && cat !== '__end-marker__') {
+          setCategory(cat);
+        }
+      });
+    }, options);
+
+    categories.forEach((cat) => {
+      const el = document.querySelector(`[data-category="${cat}"]`);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [categories]);
+
+  const filteredProducts = products.filter((product) => product.available !== false);
+
+  return (
+    <main className="max-w-5xl mx-auto flex flex-col h-screen overflow-hidden">
+      <h1 className="text-3xl font-bold py-2 text-center">CBA VAPES</h1>
+
+      <FilterBar
+        onFilterChange={({ category }) => {
+          setCategory(category);
+          const el = document.getElementById(`category-${category.replace(/\s+/g, '-')}`);
+          if (category && el && containerRef.current) {
+            containerRef.current.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
+          } else if (containerRef.current) {
+            containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }}
+        categories={categories}
+        selectedCategory={category}
+        
+      />
+
+      <div
+        id="scroll-container"
+        ref={containerRef}
+        className="flex-grow overflow-y-auto relative z-0 pb-32 top-5 px-4"
+        style={{ scrollPaddingTop: '3.5rem' }}
+      >
+        <ProductList
+          products={filteredProducts}
+          selectedCategory={category}
+          dataAttribute={(cat) => ({
+            'data-category': cat,
+            id: `category-${cat.replace(/\s+/g, '-')}`,
+          })}
+        />
+        {/* 🔽 Invisible end-marker sin dejar espacio visible extra */}
+        <div data-category="__end-marker__" className="h-1 invisible" />
+      </div>
+    </main>
   );
 }
+
+
