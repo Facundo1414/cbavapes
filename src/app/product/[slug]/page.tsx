@@ -75,7 +75,7 @@ export default function ProductPage() {
       </header>
 
       {/* Carrusel de imágenes */}
-      <div className="h-80 py-4">
+      <div className="min-h-[400px] py-4 relative z-10">
         <ProductCarousel images={productImages} />
       </div>
 
@@ -83,32 +83,34 @@ export default function ProductPage() {
       <main className="px-4 max-w-xl mx-auto">
         <h2 className="text-xl font-bold mb-4">Seleccioná sabores</h2>
 
-      <div className="max-h-[400px] overflow-y-auto pb-[80px]">
+        <div className="max-h-[320px] overflow-y-auto pb-[60px]">
           <Card className="divide-y">
             {productOptions.map(opt => (
               <div
                 key={opt.id}
-                className="flex items-center justify-between px-4 py-3"
+                className="flex items-center justify-between px-4 h-[58px]"
               >
-                <div>
-                  <p className="font-medium text-lg">{opt.name}</p>
-                  <p className="text-sm text-gray-500">${opt.price}</p>
+                <div className="flex flex-col justify-center h-full">
+                  <p className="font-medium text-base m-0">{opt.name}</p>
+                  <p className="text-xs text-gray-500 m-0">{`$${opt.price}`}</p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 h-full">
                   <Button
                     variant="outline"
                     size="icon"
+                    className="h-8 w-8"
                     onClick={() => handleQuantityChange(opt.id, -1)}
                   >
                     -
                   </Button>
-                  <span className="min-w-[24px] text-center text-base font-medium">
+                  <span className="min-w-[24px] text-center text-base font-medium flex items-center justify-center h-full">
                     {quantities[opt.id.toString()] || 0}
                   </span>
                   <Button
                     variant="outline"
                     size="icon"
+                    className="h-8 w-8"
                     onClick={() => handleQuantityChange(opt.id, 1)}
                   >
                     +
@@ -118,6 +120,8 @@ export default function ProductPage() {
             ))}
           </Card>
         </div>
+
+
       </main>
 
       {/* Botón fijo al fondo */}

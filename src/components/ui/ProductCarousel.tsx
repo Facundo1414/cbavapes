@@ -55,8 +55,9 @@ export const ProductCarousel = ({ images }: CarouselProps) => {
     <>
       <div
         ref={containerRef}
-        className="flex overflow-x-auto gap-4 scroll-smooth snap-x snap-mandatory px-4 py-0 h-72 overflow-y-hidden"
+        className="flex overflow-x-auto gap-4 scroll-smooth snap-x snap-mandatory px-4 py-0 min-h-[320px] overflow-y-visible relative z-10"
       >
+
         {images.map((src, index) => (
           <img
             key={index}
