@@ -1,1 +1,0 @@
-// # API para leer productos desde Google Sheets

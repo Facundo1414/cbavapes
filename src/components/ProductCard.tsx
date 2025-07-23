@@ -1,45 +1,32 @@
 'use client';
-import { useState } from 'react';
 
 import Link from 'next/link';
-import React from 'react';
-
-type Product = {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  image: string;
-  available?: boolean;
-  options?: string[]; // ej. ['Uva', 'Melón', 'Menta']
-  nicotineLevel?: string; // ej. '5%', '0%'
-};
-
+import { Product } from '@/app/api/products/products';
 
 type ProductCardProps = {
   product: Product;
-  onAddToCart: (product: { id: number; name: string; price: number }) => void;
 };
 
-export default function ProductCard({ product }: { product: Product }) {
+
+export default function ProductCard({ product }: ProductCardProps) {
   return (
     <article className="bg-white rounded-lg shadow flex flex-row items-center h-35 w-full overflow-hidden">
-      {/* Imagen vertical ocupando un poco más de ancho */}
+      {/* Imagen del producto */}
       <Link
-        href={`/product/${product.id}`}
+        href={`/product/${product.ID}`}
         className="flex-shrink-0 h-full aspect-[8/10] rounded overflow-hidden cursor-pointer"
       >
         <img
-          src={product.image}
+          src={product.image || '/images/palceholder.png'}
           alt={product.name}
           className="w-full h-full object-cover"
           loading="lazy"
         />
       </Link>
 
-      {/* Info: título arriba, precio abajo */}
+      {/* Info del producto */}
       <Link
-        href={`/product/${product.id}`}
+        href={`/product/${product.ID}`}
         className="flex flex-col justify-between flex-grow h-full pl-4 py-3 cursor-pointer overflow-hidden"
       >
         <h3
@@ -49,16 +36,9 @@ export default function ProductCard({ product }: { product: Product }) {
           {product.name}
         </h3>
         <p className="text-lg md:text-xl font-bold text-gray-800">
-          ${product.price.toLocaleString()}
+          ${Number(product.price).toLocaleString()}
         </p>
       </Link>
     </article>
   );
 }
-
-
-
-
-
-
-
