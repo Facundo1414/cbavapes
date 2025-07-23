@@ -1,23 +1,35 @@
 'use client';
 
 import Link from 'next/link';
-import { Product } from '@/app/api/products/products';
+import { ProductFull } from '@/app/api/products/useProducts';
 
 type ProductCardProps = {
-  product: Product;
+  product: ProductFull;
 };
 
+function hasStock(product: ProductFull): boolean {
+  return (
+    product.flavors &&
+    product.flavors.reduce((sum, f) => sum + f.stock, 0) > 0
+  );
+}
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const inStock = hasStock(product);
+
   return (
-    <article className="bg-white rounded-lg shadow flex flex-row items-center h-35 w-full overflow-hidden">
+    <article
+      className={`bg-white rounded-lg shadow flex flex-row items-center h-35 w-full overflow-hidden relative ${
+        !inStock ? 'opacity-60' : ''
+      }`}
+    >
       {/* Imagen del producto */}
       <Link
-        href={`/product/${product.ID}`}
+        href={`/product/${product.productId}`}
         className="flex-shrink-0 h-full aspect-[8/10] rounded overflow-hidden cursor-pointer"
       >
         <img
-          src={product.image || '/images/palceholder.png'}
+          src={product.images[0] ?? '/images/placeholder.png'}
           alt={product.name}
           className="w-full h-full object-cover"
           loading="lazy"
@@ -26,7 +38,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       {/* Info del producto */}
       <Link
-        href={`/product/${product.ID}`}
+        href={`/product/${product.productId}`}
         className="flex flex-col justify-between flex-grow h-full pl-4 py-3 cursor-pointer overflow-hidden"
       >
         <h3
@@ -36,9 +48,17 @@ export default function ProductCard({ product }: ProductCardProps) {
           {product.name}
         </h3>
         <p className="text-lg md:text-xl font-bold text-gray-800">
-          ${Number(product.price).toLocaleString()}
+          ${product.price.toLocaleString()}
         </p>
       </Link>
+
+      {/* Etiqueta Sin stock */}
+      {!inStock && (
+        <span className="absolute bottom-2 right-2 text-sm bg-red-500 text-white px-2 py-1 rounded-full shadow-md">
+          Sin stock
+        </span>
+      )}
+
     </article>
   );
 }

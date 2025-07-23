@@ -14,26 +14,48 @@ export default function CartSidebar() {
 
       <div className="flex flex-col gap-4 overflow-y-auto max-h-full">
         {cart.map((item) => (
-          <div key={item.id} className="flex justify-between items-center">
-            <div className="flex flex-col">
-              <span className="font-medium">{item.name}</span>
-              <span className="text-sm text-gray-600">
-                ${item.price} x {item.quantity}
-              </span>
-              <span className="text-sm font-semibold text-black">
+          <div
+            key={`${item.id}-${item.flavor || 'default'}`}
+            className="flex justify-between items-center gap-4"
+          >
+            <img
+              src={item.image}
+              alt={item.name}
+              className="w-16 h-16 object-cover rounded"
+            />
+
+            <div className="flex-grow">
+              <p className="font-medium">{item.name}</p>
+              {item.flavor && (
+                <p className="text-sm text-gray-600">Sabor: {item.flavor}</p>
+              )}
+              <p className="text-sm text-gray-600">
+                Precio unitario: ${item.price}
+              </p>
+              <p className="text-sm font-semibold text-black">
                 Subtotal: ${item.price * item.quantity}
-              </span>
+              </p>
             </div>
-            <div className="flex items-center gap-2">
+
+            <div className="flex flex-col items-center gap-2">
               <button
                 className="bg-gray-200 px-2 rounded text-lg"
-                onClick={() => addToCart({ id: item.id, name: item.name, price: item.price })}
+                onClick={() =>
+                  addToCart({
+                    id: item.id,
+                    name: item.name,
+                    flavor: item.flavor,
+                    price: item.price,
+                    image: item.image,
+                  })
+                }
               >
                 +
               </button>
+              <span>{item.quantity}</span>
               <button
                 className="bg-red-200 px-2 rounded text-lg"
-                onClick={() => removeFromCart(item.id)}
+                onClick={() => removeFromCart(item.id, item.flavor)}
               >
                 🗑
               </button>
@@ -54,3 +76,4 @@ export default function CartSidebar() {
     </aside>
   );
 }
+
