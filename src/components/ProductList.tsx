@@ -37,7 +37,7 @@ export default function ProductList({ products, selectedCategory, dataAttribute 
         <div
           key={category}
           {...(dataAttribute ? dataAttribute(category) : {})}
-          className="scroll-mt-24"
+          className="scroll-mt-[72px]"
         >
           <h2 className="text-xl font-semibold mb-4">{category}</h2>
 

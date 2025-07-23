@@ -130,6 +130,9 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
 
 useEffect(() => {
+      if (containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
   // Al entrar a la página
   document.body.classList.add('no-scroll');
 
@@ -173,25 +176,32 @@ useEffect(() => {
     <main className="max-w-5xl mx-auto flex flex-col h-screen overflow-hidden">
       <h1 className="text-3xl font-bold py-2 text-center">CBA VAPES</h1>
 
-      <FilterBar
-        onFilterChange={({ category }) => {
-          setCategory(category);
-          const el = document.getElementById(`category-${category.replace(/\s+/g, '-')}`);
-          if (category && el && containerRef.current) {
-            containerRef.current.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
-          } else if (containerRef.current) {
-            containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        }}
-        categories={categories}
-        selectedCategory={category}
-        
-      />
+    <div className="sticky top-14 z-20 bg-white bottom-5" style={{ height: '56px' }}>
 
+        <FilterBar
+          onFilterChange={({ category }) => {
+            setCategory(category);
+            const el = document.getElementById(`category-${category.replace(/\s+/g, '-')}`);
+            const container = containerRef.current;
+            const headerHeight = 72; 
+
+            if (category && el && container) {
+              const elOffsetTop = el.offsetTop;
+              container.scrollTo({ top: elOffsetTop - headerHeight, behavior: 'smooth' });
+            } else if (container) {
+              container.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }}
+          categories={categories}
+          selectedCategory={category}
+        />
+
+      </div>
+      
       <div
         id="scroll-container"
         ref={containerRef}
-        className="flex-grow overflow-y-auto relative z-0 pb-32 top-5 px-4"
+        className="flex-grow overflow-y-scroll h-[calc(100vh-72px)] relative z-0 pb-32 px-4 top-1"
         style={{ scrollPaddingTop: '3.5rem' }}
       >
         <ProductList
