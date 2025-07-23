@@ -45,19 +45,20 @@ export default function ProductPage() {
     }))
   }
 
-  const handleAddToCart = () => {
-    productOptions.forEach(opt => {
-      const quantity = quantities[opt.id.toString()] || 0
-      for (let i = 0; i < quantity; i++) {
-        addToCart({
-          id: opt.id,
-          name: opt.name,
-          price: opt.price,
-        })
-      }
-    })
-    // No redirigimos para que el cliente siga navegando
-  }
+const handleAddToCart = () => {
+  productOptions.forEach((opt, index) => {
+    const quantity = quantities[opt.id.toString()] || 0;
+    for (let i = 0; i < quantity; i++) {
+      addToCart({
+        id: opt.id,
+        name: opt.name,
+        price: opt.price,
+        image: productImages[index % productImages.length], // asigna la imagen correspondiente
+      });
+    }
+  });
+};
+
 
   const totalPrice = productOptions.reduce((acc, opt) => {
     const qty = quantities[opt.id.toString()] || 0

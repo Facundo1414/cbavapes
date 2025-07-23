@@ -5,10 +5,12 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 export type CartItem = {
   id: number;
   name: string;
-  flavor?: string; // agregamos sabor opcional
+  flavor?: string; 
   price: number;
   quantity: number;
+  image: string; // <-- agregar imagen
 };
+
 
 type CartContextType = {
   cart: CartItem[];
@@ -25,7 +27,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const addToCart = (item: Omit<CartItem, 'quantity'>) => {
     setCart((prev) => {
-      // Buscar item con mismo id y mismo sabor
       const found = prev.find(
         (p) => p.id === item.id && p.flavor === item.flavor
       );
@@ -39,6 +40,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return [...prev, { ...item, quantity: 1 }];
     });
   };
+
 
   const removeFromCart = (id: number, flavor?: string) => {
     setCart((prev) =>
