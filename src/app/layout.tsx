@@ -16,6 +16,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="bg-gray-50 text-gray-900 min-h-screen flex flex-col relative">
         <CartProvider>
           <Header />
+          <div className="h-2" /> {/* Spacer igual alto que Header (56px) */}
           <CartSidebar />
           <CartBarMobile />
           <main className="flex-grow">{children}</main>
