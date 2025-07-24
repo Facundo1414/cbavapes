@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { toast, Toaster } from 'sonner'  // <-- Importa Toaster
 
 const CUPONES_USADOS_KEY = 'cuponesUsados'
-const SHEET_URL = 'https://opensheet.elk.sh/TU_SHEET_ID/cupones'
+const SHEET_URL = process.env.NEXT_PUBLIC_SHEET_CUPONES_URL!
 
 export default function CheckoutPage() {
   const { cart, clearCart } = useCart()
@@ -68,6 +68,10 @@ useEffect(() => {
 
 
   const validarCupon = () => {
+    if (!process.env.NEXT_PUBLIC_SHEET_CUPONES_URL) {
+      console.warn('Falta configurar la URL de cupones en .env');
+    }
+
     const cuponUpper = cupon.trim().toUpperCase()
     const descuento = cuponesDisponibles[cuponUpper]
 

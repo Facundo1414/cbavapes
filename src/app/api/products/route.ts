@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import Papa from 'papaparse';
 
-const PRODUCTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQbzB2xGgA8S0zNnYIB_kDxQmSEIxBctw1AyYGX25HMzlU0cfeYuqba3rc0_3fnopIwCE0HEihZVXv8/pub?gid=288833677&single=true&output=csv';
-const FLAVORS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQbzB2xGgA8S0zNnYIB_kDxQmSEIxBctw1AyYGX25HMzlU0cfeYuqba3rc0_3fnopIwCE0HEihZVXv8/pub?gid=1541842378&single=true&output=csv';
+const PRODUCTS_CSV_URL = process.env.PRODUCTS_CSV_URL!;
+const FLAVORS_CSV_URL = process.env.FLAVORS_CSV_URL!;
 
 export type ProductBasic = {
   productId: string;
@@ -39,6 +39,10 @@ const cleanUrl = (url: string) => {
 
 export async function GET() {
   try {
+    if (!PRODUCTS_CSV_URL || !FLAVORS_CSV_URL) {
+  throw new Error('PRODUCTS_CSV_URL or FLAVORS_CSV_URL not defined in env');
+}
+
     const [productsRes, flavorsRes] = await Promise.all([
       fetch(PRODUCTS_CSV_URL),
       fetch(FLAVORS_CSV_URL),
