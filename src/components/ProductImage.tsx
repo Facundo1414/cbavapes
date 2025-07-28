@@ -1,16 +1,20 @@
 // components/ProductImage.tsx
 import React from 'react';
 
-type Props = {
+type Props = React.ImgHTMLAttributes<HTMLImageElement> & {
   src: string;
-  alt?: string;
-  className?: string;
 };
 
-function ProductImage({ src, alt = 'Imagen de producto', className }: Props) {
-  return <img src={src} alt={alt} className={className} loading="lazy" crossOrigin="anonymous" />;
+function ProductImage({ src, alt = 'Imagen de producto', ...rest }: Props) {
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      crossOrigin="anonymous"
+      {...rest}
+    />
+  );
 }
 
-
-// Evita rerenders innecesarios si `src` no cambia
-export default React.memo(ProductImage, (prevProps, nextProps) => prevProps.src === nextProps.src);
+export default React.memo(ProductImage, (prev, next) => prev.src === next.src);

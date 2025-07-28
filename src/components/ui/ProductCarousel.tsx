@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import clsx from 'clsx'
+import ProductImage from '../ProductImage'
 
 interface CarouselProps {
   images: string[]
@@ -57,21 +58,20 @@ export const ProductCarousel = ({ images }: CarouselProps) => {
         ref={containerRef}
         className="flex overflow-x-auto gap-4 scroll-smooth snap-x snap-mandatory px-4 py-0 min-h-[320px] overflow-y-visible relative z-10"
       >
+      {images.map((src, index) => (
+        <ProductImage
+          key={index}
+          src={src}
+          data-index={index.toString()}
+          alt={`Producto ${index + 1}`}
+          onClick={() => handleClickImage(src)}
+          className={clsx(
+            'carousel-item rounded-lg shadow-md object-cover flex-shrink-0 cursor-pointer snap-center transition-all duration-300',
+            focusedIndex === index ? 'w-72 h-72 scale-105 z-10' : 'w-52 h-52 opacity-80'
+          )}
+        />
+      ))}
 
-        {images.map((src, index) => (
-          <img
-            key={index}
-            src={src}
-            data-index={index}
-            alt={`Producto ${index + 1}`}
-            onClick={() => handleClickImage(src)}
-            className={clsx(
-              'carousel-item rounded-lg shadow-md object-cover flex-shrink-0 cursor-pointer snap-center transition-all duration-300',
-              focusedIndex === index ? 'w-72 h-72 scale-105 z-10' : 'w-52 h-52 opacity-80'
-            )}
-            style={{ margin: 0 }}
-          />
-        ))}
       </div>
 
 
