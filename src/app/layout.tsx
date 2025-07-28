@@ -5,20 +5,30 @@ import CartSidebar from '@/components/CartSidebar'
 import CartBarMobile from '@/components/CartBarMobile'
 import Header from '@/components/Header'
 
+
+import { Inter } from 'next/font/google'
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
+
+
 export const metadata = {
-  title: 'Tienda Vapers',
-  description: 'Tu tienda de vapers online',
+  title: 'Cba Vapes',
+  description: 'Cordoba Vapes',
+  icons: {
+  icon: '/favicon.ico',
+},
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="es">
-      <body className="bg-gray-50 text-gray-900 min-h-screen flex flex-col relative">
+    <html lang="es" className={inter.variable}>
+      <body className="bg-gray-50 text-gray-900 min-h-screen flex flex-col relative font-sans">
         <CartProvider>
           <Header />
-          <div className="h-2" /> {/* Spacer igual alto que Header (56px) */}
           <CartSidebar />
           <CartBarMobile />
+                        <div className="w-full  mt-20">
+          </div>
           <main className="flex-grow">{children}</main>
         </CartProvider>
       </body>

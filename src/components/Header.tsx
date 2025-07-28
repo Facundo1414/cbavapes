@@ -19,7 +19,7 @@ export default function Header() {
   return (
     <>
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-black border-b shadow-sm py-2 px-4 flex justify-between items-center">
+      <header className="fixed  w-full top-0 z-50 bg-black border-b  py-2 px-4 flex justify-between items-center">
         {/* Menu tipo Drawer */}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger aria-label="Toggle menu" className="focus:outline-none text-white">

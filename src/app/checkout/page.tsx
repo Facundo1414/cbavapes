@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { toast, Toaster } from 'sonner'  // <-- Importa Toaster
 
 const CUPONES_USADOS_KEY = 'cuponesUsados'
-const SHEET_URL = process.env.NEXT_PUBLIC_SHEET_CUPONES_URL!
+const SHEET_URL = process.env.SHEET_CUPONES_URL || ""
 
 export default function CheckoutPage() {
   const { cart, clearCart } = useCart()
@@ -20,7 +20,7 @@ export default function CheckoutPage() {
   const [comentario, setComentario] = useState('')
   const [formaEntrega, setFormaEntrega] = useState('')
   const [retiroLugar, setRetiroLugar] = useState('')
-  const [ciudad, setCiudad] = useState('')
+  const [Barrio, setBarrio] = useState('')
   const [formaPago, setFormaPago] = useState('')
   const [cupon, setCupon] = useState('')
   const [cuponValido, setCuponValido] = useState(false)
@@ -107,7 +107,7 @@ useEffect(() => {
     }${
       formaEntrega === 'retiro'
         ? `%0A📍 Retira en: ${retiroLugar}`
-        : `%0A📍 Envío a: ${direccion}, ${ciudad}`
+        : `%0A📍 Envío a: ${direccion}, ${Barrio}`
     }`
 
     const cuponTexto = cuponValido
@@ -117,7 +117,7 @@ useEffect(() => {
     return `Hola, quiero hacer un pedido:%0A${lista}%0A%0ATotal: $${total.toFixed(
       2
     )}${cuponTexto}${datosCliente}`
-  }, [cart, total, nombre, telefono, direccion, ciudad, formaEntrega, retiroLugar, formaPago, comentario, cuponValido, cupon, descuentoAplicado])
+  }, [cart, total, nombre, telefono, direccion, Barrio, formaEntrega, retiroLugar, formaPago, comentario, cuponValido, cupon, descuentoAplicado])
 
   const telefonoWsp = process.env.NEXT_PUBLIC_WSP_NUMBER || '549XXXXXXXXXX'
   const whatsappURL = `https://wa.me/${telefonoWsp}?text=${mensaje}`
@@ -137,7 +137,7 @@ useEffect(() => {
 
     if (
       (formaEntrega === 'retiro' && !retiroLugar) ||
-      (formaEntrega === 'envio' && (!direccion || !ciudad))
+      (formaEntrega === 'envio' && (!direccion || !Barrio))
     ) {
       e.preventDefault()
       setError('Por favor completá la información de entrega.')
@@ -166,6 +166,8 @@ useEffect(() => {
       },
     })
   }
+
+
 
   return (
     <>
@@ -231,13 +233,13 @@ useEffect(() => {
                 variant={formaEntrega === 'retiro' ? 'default' : 'outline'}
                 onClick={() => setFormaEntrega('retiro')}
               >
-                Lo retiro personalmente
+                🏬 Retiro
               </Button>
               <Button
                 variant={formaEntrega === 'envio' ? 'default' : 'outline'}
                 onClick={() => setFormaEntrega('envio')}
               >
-                Necesito que me lo envíen
+                🚚 Envío
               </Button>
             </div>
 
@@ -257,16 +259,16 @@ useEffect(() => {
                   <input
                     type="radio"
                     name="retiro"
-                    value="Yao Yao 1111"
-                    checked={retiroLugar === 'Yao Yao 1111'}
+                    value="Llao Llao 4476"
+                    checked={retiroLugar === 'Llao Llao 4476'}
                     onChange={e => setRetiroLugar(e.target.value)}
                   />
-                  <span className="ml-2">Yao Yao 1111 - Barrio Parque Latino</span>
+                  <span className="ml-2">Llao Llao 4476 - Barrio Parque Latino</span>
                 </label>
               </div>
             )}
 
-            {formaEntrega === 'envio' && (
+          {formaEntrega === 'envio' && (
               <div className="space-y-2">
                 <input
                   type="text"
@@ -278,9 +280,9 @@ useEffect(() => {
                 <input
                   type="text"
                   className="w-full border p-2 rounded"
-                  placeholder="Ciudad (ej: Córdoba)"
-                  value={ciudad}
-                  onChange={e => setCiudad(e.target.value)}
+                  placeholder="Barrio (ej: Nueva Cordoba)"
+                  value={Barrio}
+                  onChange={e => setBarrio(e.target.value)}
                 />
               </div>
             )}
