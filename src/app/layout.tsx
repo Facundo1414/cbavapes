@@ -8,6 +8,7 @@ import DesktopBlocker from '@/components/DesktopBlocker'
 
 
 import { Inter } from 'next/font/google'
+import ServiceWorkerRegister from '@/components/hook/ServiceWorkerRegister'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es" className={inter.variable}>
       <body className="bg-gray-50 text-gray-900 min-h-screen flex flex-col relative font-sans">
+        <ServiceWorkerRegister/>
         <DesktopBlocker />
         <CartProvider>
           <Header />

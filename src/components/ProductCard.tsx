@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ProductFull } from '@/app/api/products/useProducts';
+import ProductImage from './ProductImage';
 
 type ProductCardProps = {
   product: ProductFull;
@@ -28,12 +29,11 @@ export default function ProductCard({ product }: ProductCardProps) {
         href={`/product/${product.productId}`}
         className="flex-shrink-0 h-full aspect-[8/10] rounded overflow-hidden cursor-pointer"
       >
-        <img
-          src={product.images[0] ?? '/images/placeholder.png'}
-          alt={product.name}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
+        <ProductImage
+        src={product.images[0] ?? '/images/placeholder.png'}
+        alt={product.name}
+        className="w-full h-full object-cover"
+      />
       </Link>
 
       {/* Info del producto */}

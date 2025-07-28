@@ -33,46 +33,47 @@ export function useProducts() {
   const [products, setProducts] = useState<ProductFull[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (cached) {
-      try {
-        const { data } = JSON.parse(cached);
-        setProducts(data);
-        setLoading(false);
-      } catch (e) {
-        console.warn('Error reading cached data', e);
-      }
+useEffect(() => {
+  const cached = localStorage.getItem(CACHE_KEY);
+  let initialHash: string | null = null;
+
+  if (cached) {
+    try {
+      const { data, hash } = JSON.parse(cached);
+      initialHash = hash;
+      setProducts(data);
+      setLoading(false);
+    } catch (e) {
+      console.warn('Error leyendo cache:', e);
     }
+  }
 
-    async function checkForUpdates() {
-      try {
-        const res = await fetch('/api/products');
-        const json = await res.json();
-        const newHash = await hashString(json.csvContent);
+  // 👇 Solo hacé el fetch si no hay datos en cache
+  if (!initialHash) {
+    checkForUpdates(); // hace fetch solo si no había nada en cache
+  }
 
-        const cached = localStorage.getItem(CACHE_KEY);
-        const oldHash = cached ? JSON.parse(cached).hash : null;
+  const interval = setInterval(checkForUpdates, 5 * 60 * 1000);
+  return () => clearInterval(interval);
 
-        if (newHash !== oldHash) {
-          setProducts(json.products);
-          localStorage.setItem(
-            CACHE_KEY,
-            JSON.stringify({ hash: newHash, data: json.products })
-          );
-        }
-      } catch (e) {
-        console.error('Error fetching products:', e);
-      } finally {
-        setLoading(false);
+  async function checkForUpdates() {
+    try {
+      const res = await fetch('/api/products');
+      const json = await res.json();
+      const newHash = await hashString(json.csvContent);
+
+      if (newHash !== initialHash) {
+        setProducts(json.products);
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ hash: newHash, data: json.products }));
       }
+    } catch (e) {
+      console.error('Error al actualizar productos:', e);
+    } finally {
+      setLoading(false);
     }
+  }
+}, []);
 
-    checkForUpdates();
-
-    const interval = setInterval(checkForUpdates, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   return { products, loading };
 }
