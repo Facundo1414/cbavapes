@@ -27,9 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <Header />
           <CartSidebar />
           <CartBarMobile />
-                        <div className="w-full  mt-20">
-          </div>
-          <main className="flex-grow">{children}</main>
+          <main className="flex-1">{children}</main>
         </CartProvider>
       </body>
     </html>
