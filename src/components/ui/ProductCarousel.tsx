@@ -26,13 +26,24 @@ export const ProductCarousel = ({ images }: CarouselProps) => {
         const visibleEntries = entries
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => {
-            const aCenter = Math.abs(a.boundingClientRect.left + a.boundingClientRect.width / 2 - window.innerWidth / 2)
-            const bCenter = Math.abs(b.boundingClientRect.left + b.boundingClientRect.width / 2 - window.innerWidth / 2)
+            const aCenter = Math.abs(
+              a.boundingClientRect.left +
+                a.boundingClientRect.width / 2 -
+                window.innerWidth / 2
+            )
+            const bCenter = Math.abs(
+              b.boundingClientRect.left +
+                b.boundingClientRect.width / 2 -
+                window.innerWidth / 2
+            )
             return aCenter - bCenter
           })
 
         if (visibleEntries[0]) {
-          const index = parseInt(visibleEntries[0].target.getAttribute('data-index') || '0', 10)
+          const index = parseInt(
+            visibleEntries[0].target.getAttribute('data-index') || '0',
+            10
+          )
           setFocusedIndex(index)
         }
       },
@@ -58,23 +69,28 @@ export const ProductCarousel = ({ images }: CarouselProps) => {
         ref={containerRef}
         className="flex overflow-x-auto gap-4 scroll-smooth snap-x snap-mandatory px-4 py-0 min-h-[320px] overflow-y-visible relative z-10"
       >
-      {images.map((src, index) => (
-        <ProductImage
-          key={index}
-          src={src}
-          data-index={index.toString()}
-          alt={`Producto ${index + 1}`}
-          onClick={() => handleClickImage(src)}
-          className={clsx(
-            'carousel-item rounded-lg shadow-md object-cover flex-shrink-0 cursor-pointer snap-center transition-all duration-300',
-            focusedIndex === index ? 'w-72 h-72 scale-105 z-10' : 'w-52 h-52 opacity-80'
-          )}
-        />
-      ))}
-
+        {images.map((src, index) => {
+          const isFocused = focusedIndex === index
+          return (
+            <div
+              key={index}
+              data-index={index}
+              onClick={() => handleClickImage(src)}
+              className={clsx(
+                'carousel-item flex-shrink-0 snap-center cursor-pointer transition-all duration-300',
+                isFocused ? 'w-72 h-72 scale-105 z-10' : 'w-52 h-52 opacity-80'
+              )}
+              style={{ margin: 0 }}
+            >
+              <ProductImage
+                src={src}
+                alt={`Producto ${index + 1}`}
+                className="rounded-lg shadow-md object-cover w-full h-full"
+              />
+            </div>
+          )
+        })}
       </div>
-
-
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-4xl p-0 bg-transparent border-none shadow-none">
