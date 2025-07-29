@@ -39,6 +39,8 @@ export default function CheckoutPage() {
   const total = totalSinDescuento * (1 - descuentoAplicado / 100)
 
 useEffect(() => {
+  if (!SHEET_URL) return;
+
   const fetchCupones = async () => {
     try {
       const res = await fetch(SHEET_URL)
@@ -47,7 +49,7 @@ useEffect(() => {
       // 🛡️ Validación defensiva
       if (!Array.isArray(data)) {
         console.warn('La respuesta del sheet no es un array:', data)
-        toast.warning('No se encontraron cupones disponibles.')
+        //toast.warning('No se encontraron cupones disponibles.')
         return
       }
 
@@ -59,7 +61,7 @@ useEffect(() => {
       setCuponesDisponibles(parsed)
     } catch (err) {
       console.error('Error cargando cupones:', err)
-      toast.error('Hubo un problema al cargar los cupones.')
+      //toast.error('Hubo un problema al cargar los cupones.')
     }
   }
 
@@ -68,7 +70,7 @@ useEffect(() => {
 
 
   const validarCupon = () => {
-    if (!process.env.NEXT_PUBLIC_SHEET_CUPONES_URL) {
+    if (!process.env.SHEET_CUPONES_URL) {
       console.warn('Falta configurar la URL de cupones en .env');
     }
 
@@ -171,9 +173,9 @@ useEffect(() => {
 
   return (
     <>
-      <div className="min-h-screen pb-24">
+      <div className="min-h-screen pb-24 pt-20">
         <header className="sticky top-0 z-40 bg-white border-b px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <Button variant="ghost" size="icon"  onClick={() => router.back()}>
             <IoArrowBack size={24} />
           </Button>
           <h1 className="text-lg font-semibold">Confirmá tu pedido</h1>
@@ -186,7 +188,7 @@ useEffect(() => {
               {cart.map(item => (
                 <li key={item.id} className="py-2 flex justify-between">
                   <span>{item.name} x{item.quantity}</span>
-                  <span>${item.price * item.quantity}</span>
+                  <span>${(item.price * item.quantity).toLocaleString('es-ES', { minimumFractionDigits: 0 })}</span>
                 </li>
               ))}
               {cuponValido && (
@@ -196,7 +198,8 @@ useEffect(() => {
               )}
               <li className="pt-4 font-bold flex justify-between">
                 <span>Total:</span>
-                <span>${total.toFixed(2)}</span>
+                <span>${total.toLocaleString('es-ES', { minimumFractionDigits: 0 })}</span>
+
               </li>
             </ul>
           </div>
@@ -313,6 +316,10 @@ useEffect(() => {
 
           <div>
             <p className="font-semibold mb-2">Cupón de descuento</p>
+              {/* Aviso de funcionalidad aún no disponible */}
+              <p className="text-yellow-600 text-sm mb-2">
+                * Los cupones aún no están habilitados.
+              </p>
             <div className="flex gap-2">
               <input
                 type="text"

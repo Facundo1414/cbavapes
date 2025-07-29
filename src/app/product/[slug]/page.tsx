@@ -120,7 +120,7 @@ const handleAddToCart = () => {
   return (
     <div className="min-h-screen pb-24 pt-20">
       <header className="sticky top-0 z-40 bg-white border-b px-4 py-3 flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+        <Button variant="ghost" size="icon"  onClick={() => router.back()}>
           <IoArrowBack size={24} />
         </Button>
         <h1 className="text-lg font-semibold">{product.name}</h1>
