@@ -4,10 +4,12 @@ import { useState } from 'react'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { MdMenu, MdLocationOn } from 'react-icons/md'
 import { FaInstagram } from 'react-icons/fa'
+import { LoadingSpinner } from './ui/loading-spinner'
 
 export default function Header() {
   const [open, setOpen] = useState(false)
   const [showMapModal, setShowMapModal] = useState(false)
+  const [isLoadingMap, setIsLoadingMap] = useState(false);
 
   const instagramUrl = 'https://www.instagram.com/cbavapes_/'
   const homeUrl = '/'
@@ -39,16 +41,18 @@ export default function Header() {
                 <FaInstagram size={20} />
                 Instagram
               </a>
-              <button
-                onClick={() => {
-                  setOpen(false)         // Cerramos el drawer
-                  setShowMapModal(true)  // Abrimos el modal mapa
-                }}
-                className="flex items-center gap-2 text-left text-lg font-medium text-gray-700 hover:text-violet-600"
-              >
-                <MdLocationOn size={20} />
-                Ubicación
-              </button>
+            <button
+              onClick={() => {
+                setOpen(false);
+                setIsLoadingMap(true);     // 👈 Mostrar loading
+                setShowMapModal(true);     // Mostrar modal
+              }}
+              className="flex items-center gap-2 text-left text-lg font-medium text-gray-700 hover:text-violet-600"
+            >
+              <MdLocationOn size={20} />
+              Ubicación
+            </button>
+
             </nav>
           </SheetContent>
         </Sheet>
@@ -60,31 +64,42 @@ export default function Header() {
       </header>
 
       {/* Modal para Google Maps */}
-      {showMapModal && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[100]">
-          <div className="bg-white rounded-lg w-11/12 max-w-lg p-4 relative shadow-lg">
-            <button
-              onClick={() => setShowMapModal(false)}
-              className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-2xl font-bold leading-none"
-              aria-label="Cerrar mapa"
-            >
-              &times;
-            </button>
-            <h2 className="text-lg font-semibold mb-4">Dónde retirar pedidos</h2>
-            <div className="w-full h-64">
-              <iframe
-                src={mapsUrl}
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                title="Ubicación Google Maps - Barrio Smata Córdoba"
-              />
-            </div>
+{showMapModal && (
+  <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[100]">
+    <div className="bg-white rounded-lg w-11/12 max-w-lg p-4 relative shadow-lg">
+      <button
+        onClick={() => {
+          setShowMapModal(false);
+          setIsLoadingMap(false);
+        }}
+        className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-2xl font-bold leading-none"
+        aria-label="Cerrar mapa"
+      >
+        &times;
+      </button>
+      <h2 className="text-lg font-semibold mb-4">Dónde retirar pedidos</h2>
+
+      <div className="w-full h-64 flex items-center justify-center relative">
+        {isLoadingMap && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+            <LoadingSpinner className="w-8 h-8 text-violet-600" />
           </div>
-        </div>
-      )}
+        )}
+        <iframe
+          src={mapsUrl}
+          width="100%"
+          height="100%"
+          style={{ border: 0 }}
+          allowFullScreen
+          loading="lazy"
+          title="Ubicación Google Maps - Barrio Smata Córdoba"
+          onLoad={() => setIsLoadingMap(false)} // 👈 Oculta spinner al cargar
+        />
+      </div>
+    </div>
+  </div>
+)}
+
     </>
   )
 }
