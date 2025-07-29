@@ -30,11 +30,12 @@ export default function CartSidebar() {
                 <p className="text-sm text-gray-600">Sabor: {item.flavor}</p>
               )}
               <p className="text-sm text-gray-600">
-                Precio unitario: ${item.price}
+                Precio unitario: ${item.price.toLocaleString('es-ES')}
               </p>
               <p className="text-sm font-semibold text-black">
-                Subtotal: ${item.price * item.quantity}
+                Subtotal: ${(item.price * item.quantity).toLocaleString('es-ES')}
               </p>
+
             </div>
 
             <div className="flex flex-col items-center gap-2">

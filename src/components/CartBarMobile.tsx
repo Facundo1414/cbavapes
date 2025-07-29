@@ -33,17 +33,17 @@ export default function CartBarMobile() {
           {cart.map((item) => (
             <div
               key={`${item.id}-${item.flavor || 'default'}`}
-              className="flex justify-between items-center"
+              className="flex justify-between items-center border-b border-gray-300 last:border-b-0 pb-3 mb-3"
             >
               <div className="flex flex-col">
                 <span className="font-medium">
                   {item.name} {item.flavor ? `- ${item.flavor}` : ''}
                 </span>
                 <span className="text-sm text-gray-600">
-                  ${item.price} x {item.quantity}
+                  ${item.price.toLocaleString('es-ES')} x {item.quantity}
                 </span>
                 <span className="text-sm font-semibold text-black">
-                  Subtotal: ${item.price * item.quantity}
+                  Subtotal: ${(item.price * item.quantity).toLocaleString('es-ES')}
                 </span>
               </div>
               <button
@@ -57,14 +57,17 @@ export default function CartBarMobile() {
           ))}
         </div>
 
+
         <div className="mt-6 border-t pt-4 flex justify-between items-center">
-          <p className="font-bold text-lg">Total: ${cartTotal}</p>
+          <p className="font-bold text-lg">
+            Total: ${cartTotal.toLocaleString('es-ES')}
+          </p>
           <Link
             href="/checkout"
-            className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
+            className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 text-center"
             onClick={handleClose} // <- cerramos el drawer aquí
           >
-            Finalizar pedido
+            Finalizar Pedido
           </Link>
         </div>
       </SheetContent>

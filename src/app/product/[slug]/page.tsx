@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ProductCarousel } from '@/components/ui/ProductCarousel'
 import { useProducts, ProductFull } from '@/app/api/products/useProducts'
+import { toast } from 'sonner'
 
 type Option = {
   id: string
@@ -105,7 +106,9 @@ export default function ProductPage() {
               >
                 <div className="flex flex-col justify-center h-full">
                   <p className="font-medium text-lg m-0">{opt.name}</p>
-                  <p className="text-sm text-gray-500 m-0">{`$${opt.price}`}</p>
+                  <p className="text-sm text-gray-500 m-0">
+                    ${opt.price.toLocaleString('es-ES')}
+                  </p>
                   <p className="text-sm text-gray-400 m-0">{`Stock: ${opt.stock}`}</p>
                 </div>
 
@@ -144,7 +147,7 @@ export default function ProductPage() {
           disabled={totalPrice === 0}
           onClick={handleAddToCart}
         >
-          Agregar al carrito (${totalPrice})
+          Agregar al carrito (${totalPrice.toLocaleString('es-ES')})
         </Button>
       </div>
     </div>

@@ -42,14 +42,16 @@ export default function ProductCard({ product }: ProductCardProps) {
         className="flex flex-col justify-between flex-grow h-full pl-4 py-3 cursor-pointer overflow-hidden"
       >
         <h3
-          className="text-xl md:text-2xl font-semibold text-gray-900 truncate hover:underline"
+          className="text-xl md:text-2xl font-semibold text-gray-900 hover:underline leading-snug break-words pr-4"
           title={product.name}
         >
           {product.name}
         </h3>
         <p className="text-lg md:text-xl font-bold text-gray-800">
-          ${product.price.toLocaleString()}
+          ${product.price.toLocaleString('es-ES')}
         </p>
+
+
       </Link>
 
       {/* Etiqueta Sin stock */}
