@@ -5,6 +5,29 @@ import crypto from 'crypto';
 const PRODUCTS_CSV_URL = process.env.PRODUCTS_CSV_URL!;
 const FLAVORS_CSV_URL = process.env.FLAVORS_CSV_URL!;
 
+type ProductRow = {
+  productId: string;
+  brand: string;
+  name: string;
+  image1?: string;
+  image2?: string;
+  image3?: string;
+  price: string;
+};
+
+type FlavorRow = {
+  flavorId: string;
+  productId: string;
+  flavor: string;
+  stock: string;
+  purchasedQuantity: string;
+  quantitySold: string;
+  discountsGifts: string;
+  totalSales: string;
+  actualTotalSales: string;
+};
+
+
 export type ProductBasic = {
   productId: string;
   brand: string;
@@ -63,23 +86,25 @@ export async function GET() {
       flavorsRes.text(),
     ]);
 
-    const productsRaw = Papa.parse(productsCSV, {
+    const productsRaw = Papa.parse<ProductRow>(productsCSV, {
       header: true,
       skipEmptyLines: true,
-    }).data as any[];
+    }).data;
 
-    const flavorsRaw = Papa.parse(flavorsCSV, {
+    const flavorsRaw = Papa.parse<FlavorRow>(flavorsCSV, {
       header: true,
       skipEmptyLines: true,
-    }).data as any[];
+    }).data;
+
 
     const productsBasic: ProductBasic[] = productsRaw.map((p) => ({
       productId: p.productId.trim(),
       brand: p.brand,
       name: p.name,
       images: [p.image1, p.image2, p.image3]
-        .filter(Boolean)
-        .map((img: string) => cleanUrl(img)),
+        .filter((img): img is string => Boolean(img)) 
+        .map((img) => cleanUrl(img)),
+
       price: Number(p.price),
     }));
 
