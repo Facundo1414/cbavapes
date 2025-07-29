@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 export type ProductFull = {
   productId: string;
@@ -20,60 +20,69 @@ export type ProductFull = {
 };
 
 const CACHE_KEY = 'cachedProducts';
-
-async function hashString(str: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(str);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-}
+const CACHE_HASH_KEY = 'cachedProductsHashes';
 
 export function useProducts() {
   const [products, setProducts] = useState<ProductFull[]>([]);
   const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-  const cached = localStorage.getItem(CACHE_KEY);
-  let initialHash: string | null = null;
+  const initialHash = useRef({ productHash: '', flavorHash: '' });
 
-  if (cached) {
-    try {
-      const { data, hash } = JSON.parse(cached);
-      initialHash = hash;
-      setProducts(data);
-      setLoading(false);
-    } catch (e) {
-      console.warn('Error leyendo cache:', e);
-    }
-  }
+  useEffect(() => {
+    const cached = localStorage.getItem(CACHE_KEY);
+    const cachedHashes = localStorage.getItem(CACHE_HASH_KEY);
 
-  // 👇 Solo hacé el fetch si no hay datos en cache
-  if (!initialHash) {
-    checkForUpdates(); // hace fetch solo si no había nada en cache
-  }
-
-  const interval = setInterval(checkForUpdates, 5 * 60 * 1000);
-  return () => clearInterval(interval);
-
-  async function checkForUpdates() {
-    try {
-      const res = await fetch('/api/products');
-      const json = await res.json();
-      const newHash = await hashString(json.csvContent);
-
-      if (newHash !== initialHash) {
-        setProducts(json.products);
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ hash: newHash, data: json.products }));
+    if (cached && cachedHashes) {
+      try {
+        const { data } = JSON.parse(cached);
+        const hashes = JSON.parse(cachedHashes);
+        if (Array.isArray(data) && data.length > 0) {
+          setProducts(data);
+          initialHash.current = hashes;
+        }
+      } catch {
+        // Ignorar errores de cache
+      } finally {
+        setLoading(false);
       }
-    } catch (e) {
-      console.error('Error al actualizar productos:', e);
-    } finally {
-      setLoading(false);
     }
-  }
-}, []);
 
+    if (!initialHash.current.flavorHash) {
+      checkForUpdates();
+    }
+    checkForUpdates();
+
+    const interval = setInterval(checkForUpdates, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+
+    async function checkForUpdates() {
+      try {
+        const res = await fetch('/api/products');
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+
+        const json = await res.json();
+
+        const newHashes = {
+          productHash: json.productHash,
+          flavorHash: json.flavorHash,
+        };
+
+        if (
+          newHashes.productHash !== initialHash.current.productHash ||
+          newHashes.flavorHash !== initialHash.current.flavorHash
+        ) {
+          setProducts(json.products);
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ data: json.products }));
+          localStorage.setItem(CACHE_HASH_KEY, JSON.stringify(newHashes));
+          initialHash.current = newHashes;
+        }
+      } catch {
+        // Manejar error si quieres
+      } finally {
+        setLoading(false);
+      }
+    }
+  }, []);
 
   return { products, loading };
 }

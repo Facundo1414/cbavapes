@@ -17,7 +17,7 @@ self.addEventListener('fetch', (event) => {
       caches.open(CACHE_NAME).then(async (cache) => {
         const cachedResponse = await cache.match(request);
         if (cachedResponse) {
-          console.log('[SW] Usando imagen desde cache:', request.url);
+          //console.log('[SW] Usando imagen desde cache:', request.url);
           return cachedResponse;
         }
 

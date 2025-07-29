@@ -12,7 +12,7 @@ export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const manualScrollRef = useRef(false); // 👈 Nuevo ref para controlar scroll programático
 
-  const categories = Array.from(new Set(products.map((p) => p.brand || 'Otros')));
+const categories = Array.from(new Set((products || []).map((p) => p.brand || 'Otros')));
 
 useEffect(() => {
   document.body.classList.add('no-scroll');

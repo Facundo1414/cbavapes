@@ -8,8 +8,9 @@ type ProductListProps = {
 };
 
 export default function ProductList({ products, selectedCategory, dataAttribute }: ProductListProps) {
-  if (products.length === 0)
-    return <p className="text-center text-gray-500">No se encontraron productos.</p>;
+if (!products || products.length === 0)
+  return <p className="text-center text-gray-500">No se encontraron productos.</p>;
+
 
   // Obtener categorías únicas (brands)
   const allCategories = Array.from(new Set(products.map(p => p.brand || 'Sin marca')));

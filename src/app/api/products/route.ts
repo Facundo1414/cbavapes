@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import Papa from 'papaparse';
+import crypto from 'crypto';
 
 const PRODUCTS_CSV_URL = process.env.PRODUCTS_CSV_URL!;
 const FLAVORS_CSV_URL = process.env.FLAVORS_CSV_URL!;
@@ -37,6 +38,10 @@ const cleanUrl = (url: string) => {
   return `${protocol}://${cleanRest}`;
 };
 
+function hashStringSync(str: string): string {
+  return crypto.createHash('sha256').update(str).digest('hex');
+}
+
 export async function GET() {
   try {
     if (!PRODUCTS_CSV_URL || !FLAVORS_CSV_URL) {
@@ -44,9 +49,10 @@ export async function GET() {
 }
 
     const [productsRes, flavorsRes] = await Promise.all([
-      fetch(PRODUCTS_CSV_URL),
-      fetch(FLAVORS_CSV_URL),
-    ]);
+  fetch(PRODUCTS_CSV_URL),
+  fetch(FLAVORS_CSV_URL),
+]);
+
 
     if (!productsRes.ok || !flavorsRes.ok) {
       return NextResponse.json({ error: 'Error fetching CSV data' }, { status: 502 });
@@ -94,10 +100,16 @@ export async function GET() {
       flavors: flavors.filter((f) => f.productId === product.productId),
     }));
 
+        const productHash = hashStringSync(productsCSV);
+    const flavorHash = hashStringSync(flavorsCSV);
+
     return NextResponse.json({
       products: productsFull,
-      csvContent: productsCSV + '\n' + flavorsCSV,
+      productHash,
+      flavorHash,
+      fetchedAt: new Date().toISOString(),
     });
+
   } catch (error) {
     console.error('API fetch error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
