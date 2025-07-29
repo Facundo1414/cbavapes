@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ProductCarousel } from '@/components/ui/ProductCarousel'
 import { useProducts, ProductFull } from '@/app/api/products/useProducts'
-import { toast } from 'sonner'
+import { toast, Toaster } from 'sonner' 
 
 type Option = {
   id: string
@@ -18,7 +18,7 @@ type Option = {
 }
 
 export default function ProductPage() {
-  const { addToCart } = useCart()
+const { addToCart, cart } = useCart();
   const router = useRouter()
   const params = useParams()
   const productId = params?.slug
@@ -59,19 +59,55 @@ export default function ProductPage() {
     })
   }
 
-  const handleAddToCart = () => {
-    productOptions.forEach(opt => {
-      const quantity = quantities[opt.id] || 0
-      for (let i = 0; i < quantity; i++) {
-        addToCart({
-          id: `${product?.productId}-${opt.id}`, // id único por sabor
-          name: `${product?.name} - ${opt.name}`,
-          price: opt.price,
-          image: product?.images[0] ?? '/images/placeholder.png',
-        })
-      }
-    })
+const handleAddToCart = () => {
+  let anyAdded = false;
+  const mensajes: string[] = [];
+
+  productOptions.forEach(opt => {
+    const quantityToAdd = quantities[opt.id] || 0;
+    if (quantityToAdd === 0) return;
+
+    const currentInCart = cart.find(
+      (item) => item.id === `${product?.productId}-${opt.id}`
+    )?.quantity ?? 0;
+
+    const maxAddable = opt.stock - currentInCart;
+
+    if (maxAddable <= 0) return;
+
+    const finalQtyToAdd = Math.min(quantityToAdd, maxAddable);
+
+    if (finalQtyToAdd <= 0) return;
+
+    mensajes.push(`Se agregaron ${finalQtyToAdd} unidades de ${opt.name}`);
+
+    addToCart({
+      id: `${product?.productId}-${opt.id}`,
+      name: `${product?.name} - ${opt.name}`,
+      price: opt.price,
+      image: product?.images[0] ?? '/images/placeholder.png',
+      quantity: finalQtyToAdd,
+    });
+
+    anyAdded = true;
+  });
+
+  if (!anyAdded) {
+    toast.error('Ya se agregaron al carrito anteriormente.');
+  } else {
+    toast.success(
+      <>
+        {mensajes.map((msg, i) => (
+          <div key={i}>{msg}</div>
+        ))}
+      </>
+    );
   }
+
+};
+
+
+
 
   const totalPrice = productOptions.reduce((acc, opt) => {
     const qty = quantities[opt.id] || 0
@@ -150,6 +186,7 @@ export default function ProductPage() {
           Agregar al carrito (${totalPrice.toLocaleString('es-ES')})
         </Button>
       </div>
+      <Toaster />
     </div>
   )
 }

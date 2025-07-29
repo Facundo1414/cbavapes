@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect  } from 'react';
 import { useCart } from '@/context/CartContext';
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -11,16 +11,24 @@ export default function CartBarMobile() {
   const { cart, cartTotal, removeFromCart } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname(); // 👈
+  const [showButton, setShowButton] = useState(false);
 
-  if (cart.length === 0 || pathname === '/checkout') return null; // 👈
+  useEffect(() => {
+    if (cart.length === 0) {
+      setIsOpen(false);
+    }
+  }, [cart.length]);
+
+  if (cart.length === 0 || pathname === '/checkout') return null;
 
   const handleClose = () => setIsOpen(false);
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+    <Sheet open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
       <SheetTrigger
         aria-label="Abrir carrito"
         className="fixed bottom-20 right-4 z-50 bg-violet-600 text-white p-3 rounded-full shadow-lg hover:bg-violet-700 sm:hidden flex items-center justify-center gap-1"
+        onClick={() => setIsOpen(true)} 
       >
         <MdShoppingCart size={24} />
         {cart.length}

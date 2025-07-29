@@ -14,32 +14,36 @@ export type CartItem = {
 
 type CartContextType = {
   cart: CartItem[];
-  addToCart: (item: Omit<CartItem, 'quantity'>) => void;
+  addToCart: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
   removeFromCart: (id: string, flavor?: string) => void;
   clearCart: () => void;
   cartTotal: number;
 };
+
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  const addToCart = (item: Omit<CartItem, 'quantity'>) => {
-    setCart((prev) => {
-      const found = prev.find(
-        (p) => p.id === item.id && p.flavor === item.flavor
+const addToCart = (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
+  const qtyToAdd = item.quantity ?? 1;
+  setCart((prev) => {
+    const found = prev.find(
+      (p) => p.id === item.id && p.flavor === item.flavor
+    );
+    if (found) {
+      return prev.map((p) =>
+        p.id === item.id && p.flavor === item.flavor
+          ? { ...p, quantity: p.quantity + qtyToAdd }
+          : p
       );
-      if (found) {
-        return prev.map((p) =>
-          p.id === item.id && p.flavor === item.flavor
-            ? { ...p, quantity: p.quantity + 1 }
-            : p
-        );
-      }
-      return [...prev, { ...item, quantity: 1 }];
-    });
-  };
+    }
+    return [...prev, { ...item, quantity: qtyToAdd }];
+  });
+};
+
+
 
 
   const removeFromCart = (id: string, flavor?: string) => {
