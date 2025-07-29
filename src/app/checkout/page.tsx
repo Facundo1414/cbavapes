@@ -270,6 +270,9 @@ useEffect(() => {
 
           {formaEntrega === 'envio' && (
               <div className="space-y-2">
+                  <p className="text-sm text-gray-600 mt-2">
+                  * El envío tiene un costo adicional que se coordina por WhatsApp.
+                </p>
                 <input
                   type="text"
                   className="w-full border p-2 rounded"
@@ -284,6 +287,7 @@ useEffect(() => {
                   value={Barrio}
                   onChange={e => setBarrio(e.target.value)}
                 />
+                
               </div>
             )}
           </div>
