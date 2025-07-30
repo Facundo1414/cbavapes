@@ -79,8 +79,10 @@ const handleAddToCart = () => {
 
     if (finalQtyToAdd <= 0) return;
 
-    mensajes.push(`Se agregaron ${finalQtyToAdd} unidades de ${opt.name}`);
-
+    mensajes.push(
+      `Se ${finalQtyToAdd === 1 ? 'agregó' : 'agregaron'} ${finalQtyToAdd} ${finalQtyToAdd === 1 ? 'unidad' : 'unidades'} de ${opt.name}`
+    );
+    
     addToCart({
       id: `${product?.productId}-${opt.id}`,
       name: `${product?.name} - ${opt.name}`,
@@ -102,6 +104,8 @@ const handleAddToCart = () => {
         ))}
       </>
     );
+        setQuantities({});
+
   }
 
 };
@@ -186,7 +190,7 @@ const handleAddToCart = () => {
           Agregar al carrito (${totalPrice.toLocaleString('es-ES')})
         </Button>
       </div>
-      <Toaster />
+      <Toaster position="top-center" duration={3000} richColors />
     </div>
   )
 }
