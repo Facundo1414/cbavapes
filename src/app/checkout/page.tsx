@@ -213,7 +213,10 @@ useEffect(() => {
               className="w-full border p-2 rounded"
               placeholder="Tu nombre completo"
               value={nombre}
-              onChange={e => setNombre(e.target.value)}
+              onChange={e => {
+                const soloLetras = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')
+                setNombre(soloLetras)
+              }}
             />
             <p className="font-semibold mb-2">Telefono</p>
             <input
