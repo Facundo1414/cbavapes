@@ -133,11 +133,16 @@ useEffect(() => {
                 if (!res.ok) throw new Error('Error al obtener clientes')
                 const data = await res.json()
                 setClients(data)
-              } catch (e: any) {
-                setError(e.message)
+              } catch (e: unknown) {
+                if (e instanceof Error) {
+                  setError(e.message)
+                } else {
+                  setError(String(e))
+                }
               } finally {
                 setLoadingData(false)
               }
+
             }}
             className="mb-4"
           >
