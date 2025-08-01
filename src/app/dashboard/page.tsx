@@ -58,29 +58,34 @@ export default function DashboardPage() {
   }, [loading, user, router])
 
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if ((view === 'flavors' && flavors.length > 0) || (view === 'clientes' && clients.length > 0)) {
-        return
-      }
-
-      setLoadingData(true)
-      setError('')
-      const url = view === 'flavors' ? '/api/stock/update' : '/api/clientes/update'
-      try {
-        const res = await fetch(url)
-        if (!res.ok) throw new Error(`Error al obtener ${view}`)
-        const data = await res.json()
-        if (view === 'flavors') setFlavors(data)
-        else setClients(data)
-      } catch (e: any) {
-        setError(e.message)
-      } finally {
-        setLoadingData(false)
-      }
+useEffect(() => {
+  const fetchData = async () => {
+    if ((view === 'flavors' && flavors.length > 0) || (view === 'clientes' && clients.length > 0)) {
+      return
     }
-    fetchData()
-  }, [view])
+
+    setLoadingData(true)
+    setError('')
+    const url = view === 'flavors' ? '/api/stock/update' : '/api/clientes/update'
+    try {
+      const res = await fetch(url)
+      if (!res.ok) throw new Error(`Error al obtener ${view}`)
+      const data = await res.json()
+      if (view === 'flavors') setFlavors(data)
+      else setClients(data)
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        setError(e.message)
+      } else {
+        setError(String(e))
+      }
+    } finally {
+      setLoadingData(false)
+    }
+  }
+  fetchData()
+}, [view, flavors.length, clients.length])
+
 
 
     if (!user) {
@@ -189,43 +194,48 @@ function FlavorsTable({
     )
   }
 
-  async function handleSave(flavor: Flavor | Omit<Flavor, 'flavorId'>, isNew = false) {
-    try {
-      const res = await fetch('/api/stock/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sabor: flavor.flavor,
-          cantidadIngresada: flavor.purchasedQuantity,
-          cantidadVendida: flavor.quantitySold,
-          descuentosRegalos: flavor.discountsGifts,
-          precio: flavor.price,
-          productId: flavor.productId,
-        }),
+async function handleSave(flavor: Flavor | Omit<Flavor, 'flavorId'>, isNew = false) {
+  try {
+    const res = await fetch('/api/stock/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sabor: flavor.flavor,
+        cantidadIngresada: flavor.purchasedQuantity,
+        cantidadVendida: flavor.quantitySold,
+        descuentosRegalos: flavor.discountsGifts,
+        precio: flavor.price,
+        productId: flavor.productId,
+      }),
+    })
+    if (!res.ok) throw new Error('Error al actualizar sabor')
+
+    alert(isNew ? 'Sabor creado correctamente' : 'Actualizado correctamente')
+
+    const fresh = await fetch('/api/stock/update').then(r => r.json())
+    setFlavors(fresh)
+
+    if (isNew) {
+      setNewFlavor({
+        productId: 0,
+        flavor: '',
+        stock: 0,
+        purchasedQuantity: 0,
+        quantitySold: 0,
+        price: 0,
+        discountsGifts: 0,
       })
-      if (!res.ok) throw new Error('Error al actualizar sabor')
-
-      alert(isNew ? 'Sabor creado correctamente' : 'Actualizado correctamente')
-
-      const fresh = await fetch('/api/stock/update').then(r => r.json())
-      setFlavors(fresh)
-
-      if (isNew) {
-        setNewFlavor({
-          productId: 0,
-          flavor: '',
-          stock: 0,
-          purchasedQuantity: 0,
-          quantitySold: 0,
-          price: 0,
-          discountsGifts: 0
-        })
-        setAddingNewFlavor(false)
-      }
-    } catch (err: any) {
-      alert(err.message)
+      setAddingNewFlavor(false)
+    }
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      alert(e.message)
+    } else {
+      alert(String(e))
     }
   }
+}
+
 
   return (
     <main className="p-4 mx-auto">
@@ -460,48 +470,52 @@ function ClientsTable({
     setCurrentPage(1)
   }, [clients])
 
-  async function saveClient(client: Client | Omit<Client, 'clienteId'>, isNew = false) {
-    const url = '/api/clientes/update'
-    const method = isNew ? 'POST' : 'PUT'
+async function saveClient(client: Client | Omit<Client, 'clienteId'>, isNew = false) {
+  const url = '/api/clientes/update'
+  const method = isNew ? 'POST' : 'PUT'
 
+  const clientToSave = {
+    ...client,
+    fechaCompra: desnormalizarFecha(client.fechaCompra),
+  }
 
-    const clientToSave = {
-      ...client,
-      fechaCompra: desnormalizarFecha(client.fechaCompra),
-    }
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(clientToSave),
+    })
+    if (!res.ok) throw new Error('Error al guardar cliente')
+    alert('Cliente guardado')
 
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(clientToSave),
-      })
-      if (!res.ok) throw new Error('Error al guardar cliente')
-      alert('Cliente guardado')
+    const fresh = await (await fetch('/api/clients/update')).json()
+    setClients(fresh)
 
-      const fresh = await (await fetch('/api/clients/update')).json()
-      setClients(fresh)
-
-      setNewClient({
-        nombre: '',
-        telefono: '',
-        fechaCompra: '',
-        producto: '',
-        sabor: '',
-        precio: 0,
-        pagado: 'No',
-        entregado: 'No',
-        seguimiento: 'No',
-        cupon: 'FALSE',
-        notas: '',
-      })
-      setAddingNew(false)
-      setEditingId(null)
-      setEditingClient(null)
-    } catch (e: any) {
+    setNewClient({
+      nombre: '',
+      telefono: '',
+      fechaCompra: '',
+      producto: '',
+      sabor: '',
+      precio: 0,
+      pagado: 'No',
+      entregado: 'No',
+      seguimiento: 'No',
+      cupon: 'FALSE',
+      notas: '',
+    })
+    setAddingNew(false)
+    setEditingId(null)
+    setEditingClient(null)
+  } catch (e: unknown) {
+    if (e instanceof Error) {
       alert(e.message)
+    } else {
+      alert(String(e))
     }
   }
+}
+
 
   const startIndex = (currentPage - 1) * rowsPerPage
   const endIndex = startIndex + rowsPerPage
