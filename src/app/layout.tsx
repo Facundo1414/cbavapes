@@ -5,6 +5,7 @@ import CartSidebar from '@/components/CartSidebar'
 import CartBarMobile from '@/components/CartBarMobile'
 import Header from '@/components/Header'
 import DesktopBlocker from '@/components/DesktopBlocker'
+import { AuthProvider } from '@/context/AuthContext'
 
 
 import { Inter } from 'next/font/google'
@@ -25,14 +26,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es" className={inter.variable}>
       <body className="bg-gray-50 text-gray-900 min-h-screen flex flex-col relative font-sans">
-        <ServiceWorkerRegister/>
-        <DesktopBlocker />
-        <CartProvider>
-          <Header />
-          <CartSidebar />
-          <CartBarMobile />
-          <main className="flex-1 bg-gray-50">{children}</main>
-        </CartProvider>
+        <AuthProvider>
+          <ServiceWorkerRegister/>
+          <DesktopBlocker />
+          <CartProvider>
+            <Header />
+            <CartSidebar />
+            <CartBarMobile />
+            <main className="flex-1 bg-gray-50">{children}</main>
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   )

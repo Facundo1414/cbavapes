@@ -123,6 +123,9 @@ useEffect(() => {
 
   const telefonoWsp = process.env.NEXT_PUBLIC_WSP_NUMBER || '549XXXXXXXXXX'
   const whatsappURL = `https://wa.me/${telefonoWsp}?text=${mensaje}`
+  const productosSeparados = cart.map(i => separarNombreYSabor(i.name));
+  const producto = productosSeparados.map(p => p.nombre).join(', ');
+  const sabor = productosSeparados.map(p => p.sabor).join(', ');
 
   useEffect(() => {
     if (cart.length === 0) {
@@ -150,11 +153,50 @@ useEffect(() => {
     confirmarEnvio()
   }
 
+  function separarNombreYSabor(nombreCompleto: string): { nombre: string, sabor: string } {
+    const partes = nombreCompleto.split(' - ');
+    if (partes.length >= 2) {
+      const sabor = partes.pop()!; 
+      const nombre = partes.join(' - '); 
+      return { nombre, sabor };
+    }
+    return { nombre: nombreCompleto, sabor: '' }; 
+  }
+
+
+  async function guardarCliente() {
+  const body = {
+    nombre,
+    telefono,
+    fechaCompra: new Date().toLocaleDateString(),
+    producto,
+    sabor,
+    precio: total,
+    pagado: formaPago === 'Efectivo' ? 'Si' : 'No',
+    entregado: 'No',
+    seguimiento: 'No',
+    cupon: cuponValido ? cupon.toUpperCase() : 'FALSE',
+    notas: comentario,
+  }
+
+  try {
+    const res = await fetch('/api/clientes/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) throw new Error('No se pudo guardar cliente')
+  } catch (e) {
+    console.error(e)
+  }
+}
+
   const confirmarEnvio = () => {
     toast('¿Querés enviar tu pedido por WhatsApp ahora?', {
       action: {
         label: 'Sí, enviar',
         onClick: () => {
+          guardarCliente()
           clearCart()
           localStorage.setItem('pedidoEnviado', '1')
           window.open(whatsappURL, '_blank')
@@ -372,3 +414,6 @@ useEffect(() => {
     </>
   )
 }
+
+
+
