@@ -10,6 +10,7 @@ import {
   TableCell,
 } from '@/components/ui/table'
 import { Flavor } from '@/app/dashboard/page'
+import { toast, Toaster } from 'sonner' 
 
 
 
@@ -38,9 +39,6 @@ export default function FlavorsTable({
   const endIndex = startIndex + rowsPerPage
   const paginatedFlavors = flavors.slice(startIndex, endIndex)
 
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [flavors])
 
   function handleChange(
     flavorId: number,
@@ -70,7 +68,7 @@ async function handleSave(flavor: Flavor | Omit<Flavor, 'flavorId'>, isNew = fal
     })
     if (!res.ok) throw new Error('Error al actualizar sabor')
 
-    alert(isNew ? 'Sabor creado correctamente' : 'Actualizado correctamente')
+    toast(isNew ? 'Sabor creado correctamente' : 'Actualizado correctamente')
 
     const fresh = await fetch('/api/stock/update').then(r => r.json())
     setFlavors(fresh)
@@ -292,6 +290,10 @@ async function handleSave(flavor: Flavor | Omit<Flavor, 'flavorId'>, isNew = fal
           Agregar nuevo sabor
         </button>
       )}
+        <Toaster
+          duration={2000}
+        />
+
     </main>
   )
 }

@@ -9,7 +9,41 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table'
-import { Client, desnormalizarFecha, normalizarFecha } from '@/app/dashboard/page'
+import { Client } from '@/app/dashboard/page'
+
+
+
+function normalizarFecha(fecha: string): string {
+  if (!fecha) return ''
+
+  // Ya en formato YYYY-MM-DD (ISO)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return fecha
+
+  const partes = fecha.split('/')
+
+  // Validación: si no hay 2 o 3 partes, no se puede continuar
+  if (partes.length < 2) return ''
+
+  let [dia, mes, anio] = partes
+
+  // Si el año no está presente, usar el actual
+  if (!anio) {
+    const hoy = new Date()
+    anio = hoy.getFullYear().toString()
+  }
+
+  // Asegurar dos dígitos en día y mes
+  if (dia.length === 1) dia = '0' + dia
+  if (mes.length === 1) mes = '0' + mes
+
+  return `${anio}-${mes}-${dia}`
+}
+
+function desnormalizarFecha(fecha: string): string {
+  if (!fecha) return ''
+  const [anio, mes, dia] = fecha.split('-')
+  return `${dia}/${mes}/${anio}`
+}
 
 
 
