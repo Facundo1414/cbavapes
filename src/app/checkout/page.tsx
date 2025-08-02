@@ -164,7 +164,7 @@ useEffect(() => {
   }
 
 
-  async function guardarCliente() {
+async function guardarCliente() {
   const body = {
     nombre,
     telefono,
@@ -172,7 +172,7 @@ useEffect(() => {
     producto,
     sabor,
     precio: total,
-    pagado: formaPago === 'Efectivo' ? 'Si' : 'No',
+    pagado: 'No',
     entregado: 'No',
     seguimiento: 'No',
     cupon: cuponValido ? cupon.toUpperCase() : 'FALSE',
@@ -185,11 +185,19 @@ useEffect(() => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
+
     if (!res.ok) throw new Error('No se pudo guardar cliente')
+
+    const nuevoCliente = await res.json()
+
+    // Podés guardar ese ID en el estado o usarlo como tracking
+    localStorage.setItem('clienteId', nuevoCliente.clienteId)
+
   } catch (e) {
     console.error(e)
   }
 }
+
 
   const confirmarEnvio = () => {
     toast('¿Querés enviar tu pedido por WhatsApp ahora?', {

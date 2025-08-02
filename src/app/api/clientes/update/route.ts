@@ -43,10 +43,10 @@ export async function POST(req: Request) {
 
     const {
       nombre,
-      telefono,
+      telefono = '',
       fechaCompra,
       producto,
-      sabor,
+      sabor = '',
       precio,
       pagado = 'No',
       entregado = 'No',
@@ -59,20 +59,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Faltan datos obligatorios' }, { status: 400 })
     }
 
-    // La fila a insertar no incluye ID, que se puede generar automáticamente en la hoja
+    // 🔢 Obtener último ID válido
+    const readRes = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `${sheetName}!A2:A`,
+    })
+
+    const rows = readRes.data.values || []
+
+    const lastRowWithId = [...rows]
+      .reverse()
+      .find(row => row[0] && !isNaN(Number(row[0])))
+
+    const lastId = lastRowWithId ? parseInt(lastRowWithId[0]) : 1
+    const nextId = lastId + 1
+
     const fila = [
-      '', // Dejar vacía la columna ID para que Google Sheets la maneje o se agregue al final
+      nextId.toString(),
       nombre,
-      telefono || '',
+      telefono,
       fechaCompra,
       producto,
-      sabor || '',
+      sabor,
       precio ? precio.toString() : '',
-      pagado || 'No',
-      entregado || 'No',
-      seguimiento || 'No',
-      cupon || 'FALSE',
-      notas || '',
+      pagado,
+      entregado,
+      seguimiento,
+      cupon,
+      notas,
     ]
 
     await sheets.spreadsheets.values.append({
@@ -80,33 +94,31 @@ export async function POST(req: Request) {
       range: sheetName,
       valueInputOption: 'RAW',
       insertDataOption: 'INSERT_ROWS',
-      requestBody: { values: [fila] },
+      requestBody: {
+        values: [fila],
+      },
     })
 
-    // Devuelve lista actualizada tras agregar
-    const getRes = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${sheetName}!A2:L` })
-    const rows = getRes.data.values || []
-    const clients = rows.map((row, i) => ({
-      clienteId: parseInt(row[0]) || i + 2,
-      nombre: row[1] || '',
-      telefono: row[2] || '',
-      fechaCompra: row[3] || '',
-      producto: row[4] || '',
-      sabor: row[5] || '',
-      precio: parseFloat(row[6]) || 0,
-      pagado: row[7] || 'No',
-      entregado: row[8] || 'No',
-      seguimiento: row[9] || 'No',
-      cupon: row[10] || 'FALSE',
-      notas: row[11] || '',
-    }))
-
-    return NextResponse.json(clients)
+    return NextResponse.json({
+      clienteId: nextId,
+      nombre,
+      telefono,
+      fechaCompra,
+      producto,
+      sabor,
+      precio,
+      pagado,
+      entregado,
+      seguimiento,
+      cupon,
+      notas,
+    })
   } catch (error) {
-    console.error(error)
+    console.error('Error al insertar cliente:', error)
     return NextResponse.json({ error: 'Error en servidor' }, { status: 500 })
   }
 }
+
 
 export async function PUT(req: Request) {
   try {
