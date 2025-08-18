@@ -39,7 +39,14 @@ const { addToCart, cart } = useCart();
           name: f.flavor,
           price: found.price,
           stock: f.stock,
-        }))
+        })) 
+
+        flavorsOptions.sort((a, b) => {
+          if (a.stock > 0 && b.stock === 0) return -1
+          if (a.stock === 0 && b.stock > 0) return 1
+          return 0
+        })
+
         setProductOptions(flavorsOptions)
       } else {
         setProductOptions([])
