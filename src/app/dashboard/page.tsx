@@ -56,12 +56,18 @@ export default function DashboardPage() {
   const [error, setError] = useState('')
   const { user, loading } = useAuth()
   const router = useRouter()
+  const validUsername = process.env.AUTH_USERNAME
+
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login')
     }
+    if (validUsername !== user) {
+      router.push('/login')
+    }
   }, [loading, user, router])
+
 
 
 useEffect(() => {
