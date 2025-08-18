@@ -343,7 +343,11 @@ async function guardarCliente() {
                   value={Barrio}
                   onChange={e => setBarrio(e.target.value)}
                 />
-                
+                  {formaEntrega === 'envio' && (
+                    <p className="text-sm text-gray-600 mt-2">
+                      ⚠️ El pago en efectivo solo está disponible para pedidos con retiro.
+                    </p>
+                  )}
               </div>
             )}
           </div>
@@ -354,7 +358,14 @@ async function guardarCliente() {
             <div className="flex gap-4">
               <Button
                 variant={formaPago === 'Efectivo' ? 'default' : 'outline'}
-                onClick={() => setFormaPago('Efectivo')}
+                onClick={() => {
+                          if (formaEntrega === 'retiro') {
+                            setFormaPago('Efectivo')
+                          } else {
+                            toast.error("El pago en efectivo solo está disponible si retirás el pedido.")
+                          }
+                        }}
+                        disabled={formaEntrega !== 'retiro'}
               >
                 Efectivo
               </Button>
