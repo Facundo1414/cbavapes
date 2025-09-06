@@ -89,7 +89,32 @@ export function StockTable() {
     if (error) setError(error.message);
     else {
       setRows(
-        (data || []).map((row: any): StockRow => ({
+        (data || []).map((row: {
+          id: number;
+          product_id: number;
+          products?: { name?: string; brand?: string };
+          flavor_id: number;
+          flavors?: { flavor?: string };
+          provider_id: number;
+          providers?: { name?: string };
+          unit_cost: number;
+          purchased_quantity: number;
+          sold_quantity: number;
+          current_stock: number;
+          unit_sale_price: number;
+          unit_discount: number;
+          discounts_gifts: number;
+          net_sale_price: number;
+          total_sales: number;
+          unit_gain: number;
+          total_gain: number;
+          real_total_gain: number;
+          real_total_sales: number;
+          margin: number;
+          purchase_date: string;
+          notes: string;
+          total_purchased: number;
+        }): StockRow => ({
           id: row.id,
           product_id: row.product_id,
           product_name: row.products?.name || "",

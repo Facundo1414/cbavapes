@@ -66,22 +66,35 @@ export default function AdminSabores() {
     setLoading(true);
   const { data, error } = await supabaseBrowser.from("flavors").select("id, flavor, product_id, products(name, brand), stock, purchased_quantity, quantity_sold, discounts_gifts, price, total_sales, actual_total_sales").order("flavor", { ascending: true });
     if (error) setError(error.message);
-    else setFlavors(
-      (data || []).map((f: any) => ({
-        id: f.id,
-        flavor: f.flavor,
-        product_id: f.product_id,
-        products: Array.isArray(f.products) ? f.products[0] : f.products,
-        stock: f.stock,
-        purchased_quantity: f.purchased_quantity,
-        quantity_sold: f.quantity_sold,
-        discounts_gifts: f.discounts_gifts,
-        price: f.price,
-        total_sales: f.total_sales,
-        actual_total_sales: f.actual_total_sales,
-        modified: false,
-      }))
-    );
+        else setFlavors(
+          (data || []).map((f: {
+            id: number;
+            flavor: string;
+            product_id: number;
+            products?: { name?: string; brand?: string } | { name?: string; brand?: string }[];
+            stock?: number;
+            purchased_quantity?: number;
+            quantity_sold?: number;
+            discounts_gifts?: number;
+            price?: number;
+            total_sales?: number;
+            actual_total_sales?: number;
+            modified?: boolean;
+          }) => ({
+            id: f.id,
+            flavor: f.flavor,
+            product_id: f.product_id,
+            products: Array.isArray(f.products) ? f.products[0] : f.products,
+            stock: f.stock,
+            purchased_quantity: f.purchased_quantity,
+            quantity_sold: f.quantity_sold,
+            discounts_gifts: f.discounts_gifts,
+            price: f.price,
+            total_sales: f.total_sales,
+            actual_total_sales: f.actual_total_sales,
+            modified: false,
+          }))
+        );
     setLoading(false);
   }
 

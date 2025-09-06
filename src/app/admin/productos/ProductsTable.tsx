@@ -45,7 +45,7 @@ export function ProductsTable() {
   const totalPages = Math.ceil(products.length / ROWS_PER_PAGE);
   const paginatedProducts = products.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
   const [categoriesRefreshKey, setCategoriesRefreshKey] = useState(0);
-  const { categories, loading: loadingCategories } = useCategories(categoriesRefreshKey);
+  const { categories } = useCategories(categoriesRefreshKey);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -59,7 +59,7 @@ export function ProductsTable() {
     if (error) setError(error.message);
     else {
       // Calcular el stock total sumando el stock de cada flavor
-      const productsWithStock: Product[] = (data || []).map((product: any) => ({
+      const productsWithStock: Product[] = (data || []).map((product: Product & { flavors?: Flavor[] }) => ({
         ...product,
         stock: Array.isArray(product.flavors)
           ? (product.flavors as Flavor[]).reduce((sum, flavor) => sum + (flavor.stock || 0), 0)
@@ -78,7 +78,7 @@ export function ProductsTable() {
 
   async function handleSave(values: ProductFormValues) {
     // Enviar todos los campos requeridos, nunca stock ni flavors
-    let clean: Omit<Product, "id" | "stock"> & Partial<Product> = {
+  let clean: Omit<Product, "id" | "stock"> & Partial<Product> = {
       name: values.name,
       price: values.price,
       brand: values.brand,
@@ -94,8 +94,8 @@ export function ProductsTable() {
         ...clean,
       };
     }
-    if ('stock' in clean) delete (clean as any).stock;
-    if ('flavors' in clean) delete (clean as any).flavors;
+  if ('stock' in clean) delete (clean as Partial<Product>).stock;
+  if ('flavors' in clean) delete (clean as Partial<Product> & { flavors?: Flavor[] }).flavors;
     if (editProduct) {
       await supabaseBrowser.from("products").update(clean).eq("id", editProduct.id);
     } else {

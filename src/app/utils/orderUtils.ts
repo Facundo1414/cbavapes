@@ -25,17 +25,14 @@ export async function getOrCreateClient(
   nombre: string,
   telefono: string
 ): Promise<number> {
-  const { data, error }: GetOrCreateClientResponse = await supabaseBrowser
+  const { data }: { data: Client | null } = await supabaseBrowser
     .from("clients")
     .select("id")
     .eq("name", nombre)
     .eq("phone", telefono)
     .single();
   if (data && data.id) return data.id;
-  const {
-    data: newClient,
-    error: errorCreate,
-  }: { data: Client | null; error: unknown } = await supabaseBrowser
+  const { data: newClient }: { data: Client | null } = await supabaseBrowser
     .from("clients")
     .insert([{ name: nombre, phone: telefono }])
     .select("id")
@@ -63,7 +60,7 @@ export async function crearPedidoYItems({
   descuentoAplicado: number;
   aclaraciones: string;
   clearCart: () => void;
-  router: any;
+  router: { push: (path: string) => void };
 }) {
   try {
     if (!nombre.trim() || !telefono.trim() || cart.length === 0) {
@@ -82,7 +79,7 @@ export async function crearPedidoYItems({
       notes: aclaraciones,
       discount: descuentoAplicado,
     };
-    const { data: pedidoData, error: pedidoError } = await supabaseBrowser
+    const { data: pedidoData } = await supabaseBrowser
       .from("orders")
       .insert([pedido])
       .select("id")
@@ -133,7 +130,7 @@ export function generarMensajeWhatsapp({
   telefono: string;
   formaPago: string;
 }) {
-  let productos = cart
+  const productos = cart
     .map(
       (item) =>
         `• ${item.name} x${item.quantity} - $${(
@@ -141,7 +138,7 @@ export function generarMensajeWhatsapp({
         ).toLocaleString("es-ES", { minimumFractionDigits: 0 })}`
     )
     .join("\n");
-  let envio =
+  const envio =
     formaEntrega === "retiro"
       ? `- Retiro en: ${retiroLugar}`
       : `- Envío a: ${direccion}, ${barrio}`;

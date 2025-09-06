@@ -1,19 +1,11 @@
 "use client";
-import React, { useState } from 'react';
-import { Skeleton } from './ui/skeleton';
-import ProductList from './ProductList';
-import PageHeader from './PageHeader';
-
-
-interface Brand {
-  name: string;
-}
+import type { Product } from '@/app/api/products/route';
 
 interface CategoryLayoutProps {
   title: string;
   description?: string;
   brands: string[];
-  products: any[];
+  products: Product[];
   showBrandSelector?: boolean;
   categoryKey: string;
 }

@@ -74,34 +74,59 @@ export default function StockMassEdit() {
       .order("id");
     if (error) setError(error.message);
     else {
-      setRows(
-        (data || []).map((row: any): ImportRow => ({
-          id: row.id,
-          product_id: row.product_id,
-          product_name: row.products?.name || "",
-          flavor_id: row.flavor_id,
-          flavor_name: row.flavors?.flavor || "",
-          provider_id: row.provider_id,
-          provider_name: row.providers?.name || "",
-          unit_cost: row.unit_cost,
-          purchased_quantity: row.purchased_quantity,
-          sold_quantity: row.sold_quantity,
-          current_stock: row.current_stock,
-          unit_sale_price: row.unit_sale_price,
-          unit_discount: row.unit_discount,
-          discounts_gifts: row.discounts_gifts,
-          net_sale_price: row.net_sale_price,
-          total_sales: row.total_sales,
-          unit_gain: row.unit_gain,
-          total_gain: row.total_gain,
-          real_total_gain: row.real_total_gain,
-          real_total_sales: row.real_total_sales,
-          margin: row.margin,
-          purchase_date: row.purchase_date,
-          notes: row.notes,
-          total_purchased: row.total_purchased,
-        }))
-      );
+        setRows(
+          (data || []).map((row: {
+            id: number;
+            product_id: number;
+            products?: { name?: string };
+            flavor_id: number;
+            flavors?: { flavor?: string };
+            provider_id: number;
+            providers?: { name?: string };
+            unit_cost: number;
+            purchased_quantity: number;
+            sold_quantity: number;
+            current_stock: number;
+            unit_sale_price: number;
+            unit_discount: number;
+            discounts_gifts: number;
+            net_sale_price: number;
+            total_sales: number;
+            unit_gain: number;
+            total_gain: number;
+            real_total_gain: number;
+            real_total_sales: number;
+            margin: number;
+            purchase_date: string;
+            notes: string;
+            total_purchased: number;
+          }): ImportRow => ({
+            id: row.id,
+            product_id: row.product_id,
+            product_name: row.products?.name || "",
+            flavor_id: row.flavor_id,
+            flavor_name: row.flavors?.flavor || "",
+            provider_id: row.provider_id,
+            provider_name: row.providers?.name || "",
+            unit_cost: row.unit_cost,
+            purchased_quantity: row.purchased_quantity,
+            sold_quantity: row.sold_quantity,
+            current_stock: row.current_stock,
+            unit_sale_price: row.unit_sale_price,
+            unit_discount: row.unit_discount,
+            discounts_gifts: row.discounts_gifts,
+            net_sale_price: row.net_sale_price,
+            total_sales: row.total_sales,
+            unit_gain: row.unit_gain,
+            total_gain: row.total_gain,
+            real_total_gain: row.real_total_gain,
+            real_total_sales: row.real_total_sales,
+            margin: row.margin,
+            purchase_date: row.purchase_date,
+            notes: row.notes,
+            total_purchased: row.total_purchased,
+          }))
+        );
     }
     setLoading(false);
   }
