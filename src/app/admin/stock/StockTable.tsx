@@ -92,11 +92,11 @@ export function StockTable() {
         (data || []).map((row: {
           id: number;
           product_id: number;
-          products?: { name?: string; brand?: string };
+          products?: { name?: string; brand?: string } | { name?: string; brand?: string }[];
           flavor_id: number;
-          flavors?: { flavor?: string };
+          flavors?: { flavor?: string } | { flavor?: string }[];
           provider_id: number;
-          providers?: { name?: string };
+          providers?: { name?: string } | { name?: string }[];
           unit_cost: number;
           purchased_quantity: number;
           sold_quantity: number;
@@ -117,12 +117,12 @@ export function StockTable() {
         }): StockRow => ({
           id: row.id,
           product_id: row.product_id,
-          product_name: row.products?.name || "",
-          brand: row.products?.brand || "",
+          product_name: Array.isArray(row.products) ? row.products[0]?.name || "" : (row.products as { name?: string } | undefined)?.name || "",
+          brand: Array.isArray(row.products) ? row.products[0]?.brand || "" : (row.products as { brand?: string } | undefined)?.brand || "",
           flavor_id: row.flavor_id,
-          flavor_name: row.flavors?.flavor || "",
+          flavor_name: Array.isArray(row.flavors) ? row.flavors[0]?.flavor || "" : (row.flavors as { flavor?: string } | undefined)?.flavor || "",
           provider_id: row.provider_id,
-          provider_name: row.providers?.name || "",
+          provider_name: Array.isArray(row.providers) ? row.providers[0]?.name || "" : (row.providers as { name?: string } | undefined)?.name || "",
           unit_cost: row.unit_cost,
           purchased_quantity: row.purchased_quantity,
           sold_quantity: row.sold_quantity,

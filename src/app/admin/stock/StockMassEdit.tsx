@@ -75,14 +75,39 @@ export default function StockMassEdit() {
     if (error) setError(error.message);
     else {
         setRows(
-          (data || []).map((row: any): ImportRow => ({
+          (data || []).map((row: {
+            id: number;
+            product_id: number;
+            products?: { name?: string } | { name?: string }[];
+            flavor_id: number;
+            flavors?: { flavor?: string } | { flavor?: string }[];
+            provider_id: number;
+            providers?: { name?: string } | { name?: string }[];
+            unit_cost: number;
+            purchased_quantity: number;
+            sold_quantity: number;
+            current_stock: number;
+            unit_sale_price: number;
+            unit_discount: number;
+            discounts_gifts: number;
+            net_sale_price: number;
+            total_sales: number;
+            unit_gain: number;
+            total_gain: number;
+            real_total_gain: number;
+            real_total_sales: number;
+            margin: number;
+            purchase_date: string;
+            notes: string;
+            total_purchased: number;
+          }): ImportRow => ({
             id: row.id,
             product_id: row.product_id,
-            product_name: Array.isArray(row.products) ? row.products[0]?.name || "" : row.products?.name || "",
+            product_name: Array.isArray(row.products) ? row.products[0]?.name || "" : (row.products as { name?: string } | undefined)?.name || "",
             flavor_id: row.flavor_id,
-            flavor_name: Array.isArray(row.flavors) ? row.flavors[0]?.flavor || "" : row.flavors?.flavor || "",
+            flavor_name: Array.isArray(row.flavors) ? row.flavors[0]?.flavor || "" : (row.flavors as { flavor?: string } | undefined)?.flavor || "",
             provider_id: row.provider_id,
-            provider_name: Array.isArray(row.providers) ? row.providers[0]?.name || "" : row.providers?.name || "",
+            provider_name: Array.isArray(row.providers) ? row.providers[0]?.name || "" : (row.providers as { name?: string } | undefined)?.name || "",
             unit_cost: row.unit_cost,
             purchased_quantity: row.purchased_quantity,
             sold_quantity: row.sold_quantity,
