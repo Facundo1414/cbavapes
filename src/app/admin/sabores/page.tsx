@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/utils/supabaseClientBrowser";
-import { Card } from "@/components/ui/card";
+
 import FlavorQuickCreateModal from "@/components/dashboard/FlavorQuickCreateModal";
 import { Button } from "@/components/ui/button";
 
@@ -68,8 +68,18 @@ export default function AdminSabores() {
     if (error) setError(error.message);
     else setFlavors(
       (data || []).map((f: any) => ({
-        ...f,
-        products: Array.isArray(f.products) ? f.products[0] : f.products
+        id: f.id,
+        flavor: f.flavor,
+        product_id: f.product_id,
+        products: Array.isArray(f.products) ? f.products[0] : f.products,
+        stock: f.stock,
+        purchased_quantity: f.purchased_quantity,
+        quantity_sold: f.quantity_sold,
+        discounts_gifts: f.discounts_gifts,
+        price: f.price,
+        total_sales: f.total_sales,
+        actual_total_sales: f.actual_total_sales,
+        modified: false,
       }))
     );
     setLoading(false);

@@ -11,7 +11,7 @@ export function useCantidadOrdenes(periodo: "mes" | "semana") {
   useEffect(() => {
     async function fetchOrdenes() {
       setLoading(true);
-      let fromDate = new Date();
+      const fromDate = new Date();
       if (periodo === "mes") {
         fromDate.setDate(1);
       } else {
@@ -25,7 +25,7 @@ export function useCantidadOrdenes(periodo: "mes" | "semana") {
         setData([]);
       } else {
         const agrupado: Record<string, number> = {};
-        orders.forEach((order: any) => {
+        orders.forEach((order: { id: number; created_at: string }) => {
           const fecha =
             periodo === "mes"
               ? order.created_at.slice(0, 7)
@@ -58,7 +58,7 @@ export function useVentas(periodo: "mes" | "semana") {
   useEffect(() => {
     async function fetchVentas() {
       setLoading(true);
-      let fromDate = new Date();
+      const fromDate = new Date();
       if (periodo === "mes") {
         // Últimos 6 meses
         fromDate.setMonth(fromDate.getMonth() - 5);
@@ -74,13 +74,15 @@ export function useVentas(periodo: "mes" | "semana") {
         setData([]);
       } else {
         const agrupado: Record<string, number> = {};
-        orders.forEach((order: any) => {
-          const fecha =
-            periodo === "mes"
-              ? order.created_at.slice(0, 7)
-              : order.created_at.slice(0, 10);
-          agrupado[fecha] = (agrupado[fecha] || 0) + (order.total || 0);
-        });
+        orders.forEach(
+          (order: { id: number; total: number; created_at: string }) => {
+            const fecha =
+              periodo === "mes"
+                ? order.created_at.slice(0, 7)
+                : order.created_at.slice(0, 10);
+            agrupado[fecha] = (agrupado[fecha] || 0) + (order.total || 0);
+          }
+        );
         let result = Object.entries(agrupado).map(([fecha, total]) => ({
           fecha,
           total: Number(total),
@@ -115,10 +117,16 @@ export function useProductosMasVendidos() {
         setData([]);
       } else {
         const agrupado: Record<string, number> = {};
-        items.forEach((item: any) => {
-          agrupado[item.product_name] =
-            (agrupado[item.product_name] || 0) + (item.quantity || 0);
-        });
+        items.forEach(
+          (item: {
+            product_id: number;
+            product_name: string;
+            quantity: number;
+          }) => {
+            agrupado[item.product_name] =
+              (agrupado[item.product_name] || 0) + (item.quantity || 0);
+          }
+        );
         setData(
           Object.entries(agrupado).map(([name, ventas]) => ({
             name,
@@ -148,7 +156,7 @@ export function useSaboresMasVendidos() {
         setData([]);
       } else {
         const agrupado: Record<string, number> = {};
-        items.forEach((item: any) => {
+        items.forEach((item: { flavor: string; quantity: number }) => {
           agrupado[item.flavor] =
             (agrupado[item.flavor] || 0) + (item.quantity || 0);
         });

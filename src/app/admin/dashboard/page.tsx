@@ -3,6 +3,24 @@ import FlavorQuickCreateModal from "@/components/dashboard/FlavorQuickCreateModa
 import ProductQuickCreateModal from "@/components/dashboard/ProductQuickCreateModal";
 
 import { useEffect, useState } from "react";
+
+interface RecentOrder {
+  id: number;
+  client_id: number;
+  total: number;
+  created_at: string;
+  status: string;
+  clients?: { name?: string };
+  cliente_nombre: string;
+}
+
+interface FlavorStock {
+  stock: number;
+}
+
+interface OrderTotal {
+  total: number;
+}
 import { supabaseBrowser } from "@/utils/supabaseClientBrowser";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,7 +69,7 @@ export default function AdminDashboard() {
   const [stock, setStock] = useState(0);
   const [clientes, setClientes] = useState(0);
   const [pedidos, setPedidos] = useState(0);
-  const [recientes, setRecientes] = useState<any[]>([]);
+  const [recientes, setRecientes] = useState<RecentOrder[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [modalPedidoOpen, setModalPedidoOpen] = useState(false);
   const [modalProductoOpen, setModalProductoOpen] = useState(false);
@@ -79,17 +97,17 @@ export default function AdminDashboard() {
         );
       }
       // Calcular el stock total sumando el stock de todos los flavors
-      const totalStock = (flavorsRes.data || []).reduce((acc: number, f: any) => acc + (f.stock ? Number(f.stock) : 0), 0);
+      const totalStock = (flavorsRes.data as FlavorStock[] || []).reduce((acc: number, f: FlavorStock) => acc + (f.stock ? Number(f.stock) : 0), 0);
       setStock(totalStock);
       setClientes(cliRes.count || 0);
       setPedidos(pedRes.count || 0);
-      setVentas((ventasRes.data || []).reduce((acc: number, o: any) => acc + (o.total ? Number(o.total) : 0), 0));
-      setRecientes((pedidosRes.data || []).map((p: any) => ({
+      setVentas((ventasRes.data as OrderTotal[] || []).reduce((acc: number, o: OrderTotal) => acc + (o.total ? Number(o.total) : 0), 0));
+      setRecientes((pedidosRes.data as Omit<RecentOrder, 'cliente_nombre'>[] || []).map((p) => ({
         ...p,
         cliente_nombre: p.clients?.name || "-"
       })));
-    } catch (err: any) {
-      setErrorMsg(err.message || String(err));
+    } catch (err) {
+      setErrorMsg((err instanceof Error ? err.message : String(err)));
     }
   }
 

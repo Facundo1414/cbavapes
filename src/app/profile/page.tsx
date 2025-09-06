@@ -9,12 +9,10 @@ import { useRouter } from 'next/navigation';
 import { useSessionContext } from '@supabase/auth-helpers-react';
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -92,7 +90,7 @@ export default function ProfilePage() {
       }
       setCompras(orders);
       // 2. Traer los order_items de esas órdenes
-      const orderIds = orders.map((o: any) => o.id);
+  const orderIds = orders.map((o: Compra) => o.id);
       if (orderIds.length === 0) {
         setOrderItems([]);
         setComprasLoading(false);
@@ -173,7 +171,7 @@ export default function ProfilePage() {
         .order('created_at', { ascending: false });
       if (!error && data) {
         // Map flavor from array to object (Supabase returns as array)
-        const mapped = data.map((v: any) => ({
+        const mapped = (data as (Valoracion & { flavor: { id: string; name: string }[] })[]).map((v) => ({
           ...v,
           flavor: Array.isArray(v.flavor) ? v.flavor[0] : v.flavor
         }));

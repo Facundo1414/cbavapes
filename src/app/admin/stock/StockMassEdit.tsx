@@ -76,10 +76,30 @@ export default function StockMassEdit() {
     else {
       setRows(
         (data || []).map((row: any): ImportRow => ({
-          ...row,
+          id: row.id,
+          product_id: row.product_id,
           product_name: row.products?.name || "",
+          flavor_id: row.flavor_id,
           flavor_name: row.flavors?.flavor || "",
-          provider_name: row.providers?.name || ""
+          provider_id: row.provider_id,
+          provider_name: row.providers?.name || "",
+          unit_cost: row.unit_cost,
+          purchased_quantity: row.purchased_quantity,
+          sold_quantity: row.sold_quantity,
+          current_stock: row.current_stock,
+          unit_sale_price: row.unit_sale_price,
+          unit_discount: row.unit_discount,
+          discounts_gifts: row.discounts_gifts,
+          net_sale_price: row.net_sale_price,
+          total_sales: row.total_sales,
+          unit_gain: row.unit_gain,
+          total_gain: row.total_gain,
+          real_total_gain: row.real_total_gain,
+          real_total_sales: row.real_total_sales,
+          margin: row.margin,
+          purchase_date: row.purchase_date,
+          notes: row.notes,
+          total_purchased: row.total_purchased,
         }))
       );
     }

@@ -12,8 +12,35 @@ const CATEGORY_MAP: Record<string, string> = {
   "TORCH THC": "thc-vapes",
   // Agrega más mapeos según tus marcas/nombres
 };
+
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
+
+interface Flavor {
+  id: number;
+  product_id: number;
+  flavor: string;
+  stock: number;
+  purchased_quantity: number;
+  quantity_sold: number;
+  discounts_gifts: number;
+  price: number;
+  total_sales: number;
+  actual_total_sales: number;
+}
+
+interface Product {
+  id: number;
+  brand: string;
+  name: string;
+  image1: string;
+  image2: string;
+  image3: string;
+  price: number;
+  category_key: string;
+  flavors: Flavor[];
+  category?: string; // calculado en runtime
+}
 
 export async function GET() {
   try {
@@ -27,7 +54,7 @@ export async function GET() {
     }
 
     // Agregar campo category a cada producto según brand o name
-    const productsWithCategory = (products ?? []).map((p: any) => ({
+    const productsWithCategory = (products ?? []).map((p: Product) => ({
       ...p,
       category: CATEGORY_MAP[p.brand] || CATEGORY_MAP[p.name] || "otros",
     }));

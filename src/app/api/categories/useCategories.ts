@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 
-export function useCategories(refreshKey?: any) {
-  const [categories, setCategories] = useState<any[]>([]);
+export interface Category {
+  id: number;
+  name: string;
+  [key: string]: unknown;
+}
+
+export function useCategories(refreshKey?: unknown) {
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

@@ -9,7 +9,16 @@ export interface Client {
 
 export interface GetOrCreateClientResponse {
   data: Client | null;
-  error: any;
+  error: unknown;
+}
+
+export interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  flavor?: string;
+  flavor_id?: number | null;
 }
 
 export async function getOrCreateClient(
@@ -26,7 +35,7 @@ export async function getOrCreateClient(
   const {
     data: newClient,
     error: errorCreate,
-  }: { data: Client | null; error: any } = await supabaseBrowser
+  }: { data: Client | null; error: unknown } = await supabaseBrowser
     .from("clients")
     .insert([{ name: nombre, phone: telefono }])
     .select("id")
@@ -48,7 +57,7 @@ export async function crearPedidoYItems({
 }: {
   nombre: string;
   telefono: string;
-  cart: any[];
+  cart: CartItem[];
   total: number;
   cupon: string;
   descuentoAplicado: number;
@@ -98,7 +107,7 @@ export async function crearPedidoYItems({
     clearCart();
     router.push("/");
     return true;
-  } catch (err: any) {
+  } catch (err) {
     throw err;
   }
 }
@@ -114,7 +123,7 @@ export function generarMensajeWhatsapp({
   telefono,
   formaPago,
 }: {
-  cart: any[];
+  cart: CartItem[];
   formaEntrega: "retiro" | "envio";
   retiroLugar: string;
   direccion: string;

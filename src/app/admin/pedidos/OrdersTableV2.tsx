@@ -1,12 +1,12 @@
 
 
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/utils/supabaseClientBrowser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useProducts } from "@/app/api/products/useProducts";
-import OrderItemsRow from "./OrderItemsRow";
+// import OrderItemsRow from "./OrderItemsRow";
 
 
 import OrderCreateForm from "./OrderCreateForm";
@@ -30,12 +30,17 @@ import OrdersTableList from "./OrdersTableList";
     created_at: string;
     paid: boolean;
     delivered: boolean;
-    [key: string]: any;
+    total: number;
+    notes?: string;
+    coupon?: string;
+    discount?: number;
+  status: string;
   };
   type Client = {
     id: number;
     name: string;
-    [key: string]: any;
+    phone?: string;
+    notes?: string;
   };
 
 export function OrdersTable() {

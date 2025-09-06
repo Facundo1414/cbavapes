@@ -16,7 +16,8 @@ type OrderItemInput = {
 type Client = {
   id: number;
   name: string;
-  [key: string]: any;
+  phone?: string;
+  notes?: string;
 };
 type Props = {
   clients: Client[];
@@ -42,8 +43,8 @@ export default function OrderCreateForm({ clients, onCreated, orderItems }: Prop
       setLoading(false);
       return;
     }
-    let client = clients.find(c => c.name?.toLowerCase().trim() === clientName.toLowerCase().trim());
-    let client_id = client?.id;
+  const client = clients.find(c => c.name?.toLowerCase().trim() === clientName.toLowerCase().trim());
+  let client_id = client?.id;
     if (!client_id) {
   const { data, error } = await supabaseBrowser.from("clients").insert([{ name: clientName }]).select();
       if (error || !data || !data[0]) {
