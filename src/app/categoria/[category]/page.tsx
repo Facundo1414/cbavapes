@@ -4,8 +4,13 @@ import { fetchProductsServer } from '@/app/api/products/fetchProductsServer';
 import type { ProductFull } from '@/app/api/products/useProducts';
 import { supabaseServer } from '@/utils/supabaseServer';
 
-export default async function CategoryPage({ params }: { params: { category: string } }) {
-  const { category } = params;
+interface PageProps {
+  params: Promise<{ category: string }>
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function CategoryPage({ params }: PageProps) {
+  const { category } = await params;
   const products: ProductFull[] = await fetchProductsServer();
 
   // Obtener la categoría desde Supabase

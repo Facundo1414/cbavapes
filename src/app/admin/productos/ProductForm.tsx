@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import useCategories from "./useCategories";
+import type { Category } from "@/app/api/categories/useCategories";
 import { Button } from "@/components/ui/button";
 
 export type ProductFormValues = {
@@ -62,7 +63,7 @@ export function ProductForm({ initial, onSave, onCancel }: {
           <option value="" disabled>
             {loadingCategories ? "Cargando..." : "Selecciona una categoría"}
           </option>
-          {categories.map((cat: { key: string; name: string }) => (
+          {categories.map((cat: Category) => (
             <option key={cat.key} value={cat.key}>{cat.name}</option>
           ))}
         </select>

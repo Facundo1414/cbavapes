@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import { useState } from 'react';
-import type { Product } from '@/app/api/products/route';
+import type { ProductFull } from '@/app/api/products/useProducts';
 import { Skeleton } from '@/components/ui/skeleton';
 import PageHeader from '@/components/PageHeader';
 import ProductList from '@/components/ProductList';
@@ -10,7 +10,7 @@ interface CategoryLayoutProps {
   title: string;
   description?: string;
   brands: string[];
-  products: Product[];
+  products: ProductFull[];
   showBrandSelector?: boolean;
   categoryKey: string;
 }

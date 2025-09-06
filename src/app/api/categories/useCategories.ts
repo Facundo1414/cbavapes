@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 
 export interface Category {
   id: number;
+  key: string;
   name: string;
+  image?: string;
+  description?: string;
   [key: string]: unknown;
 }
 
