@@ -1,7 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Product } from '@/app/dashboard/page'
+// Define the Product type here or import from the correct location
+export interface Product {
+  productId: string
+  brand: string
+  name: string
+  price: number
+  images: string[]
+}
 import {
   Table,
   TableHeader,

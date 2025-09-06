@@ -9,7 +9,17 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table'
-import { Flavor } from '@/app/dashboard/page'
+// Define the Flavor type locally if not available elsewhere
+export interface Flavor {
+  flavorId: number
+  productId: number
+  flavor: string
+  stock: number
+  purchasedQuantity: number
+  quantitySold: number
+  discountsGifts: number
+  price: number
+}
 import { toast, Toaster } from 'sonner' 
 
 

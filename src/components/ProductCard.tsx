@@ -26,23 +26,23 @@ export default function ProductCard({ product }: ProductCardProps) {
     >
       {/* Imagen del producto */}
       <Link
-        href={`/product/${product.productId}`}
+        href={`/product/${product.id}`}
         className="flex-shrink-0 h-full aspect-[8/10] rounded overflow-hidden cursor-pointer"
       >
         <ProductImage
-        src={product.images[0] ?? '/images/placeholder.png'}
-        alt={product.name}
-        className="w-full h-full object-cover"
-      />
+          src={([product.image1, product.image2, product.image3].filter(Boolean)[0]) ?? '/images/placeholder.png'}
+          alt={product.name}
+          className="w-full h-full object-cover"
+        />
       </Link>
 
       {/* Info del producto */}
       <Link
-        href={`/product/${product.productId}`}
+        href={`/product/${product.id}`}
         className="flex flex-col justify-between flex-grow h-full pl-4 py-3 cursor-pointer overflow-hidden"
       >
         <h3
-          className="text-xl md:text-2xl font-semibold text-gray-900 hover:underline leading-snug break-words pr-4"
+          className="text-xl md:text-2xl font-semibold text-gray-900 leading-snug break-words pr-4"
           title={product.name}
         >
           {product.name}

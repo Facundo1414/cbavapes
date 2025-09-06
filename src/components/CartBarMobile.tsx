@@ -27,7 +27,7 @@ export default function CartBarMobile() {
     <Sheet open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
       <SheetTrigger
         aria-label="Abrir carrito"
-        className="fixed bottom-20 right-4 z-50 bg-violet-600 text-white p-3 rounded-full shadow-lg hover:bg-violet-700 sm:hidden flex items-center justify-center gap-1"
+        className="fixed bottom-5 right-4 z-50 bg-violet-600 text-white p-3 rounded-full shadow-lg hover:bg-violet-700 sm:hidden flex items-center justify-center gap-1"
         onClick={() => setIsOpen(true)} 
       >
         <MdShoppingCart size={24} />
@@ -40,22 +40,22 @@ export default function CartBarMobile() {
         <div className="flex-grow overflow-auto space-y-4">
           {cart.map((item) => (
             <div
-              key={`${item.id}-${item.flavor || 'default'}`}
+              key={`${item.product_id}-${item.flavor_id ?? 'default'}`}
               className="flex justify-between items-center border-b border-gray-300 last:border-b-0 pb-3 mb-3"
             >
               <div className="flex flex-col">
                 <span className="font-medium">
-                  {item.name} {item.flavor ? `- ${item.flavor}` : ''}
+                  {item.name}
                 </span>
                 <span className="text-sm text-gray-600">
                   ${item.price.toLocaleString('es-ES')} x {item.quantity}
                 </span>
                 <span className="text-sm font-semibold text-black">
-                  Subtotal: ${(item.price * item.quantity).toLocaleString('es-ES')}
+                  Subtotal: {(item.price * item.quantity).toLocaleString('es-ES')}
                 </span>
               </div>
               <button
-                onClick={() => removeFromCart(item.id, item.flavor)}
+                onClick={() => removeFromCart(item.product_id, item.flavor_id)}
                 className="ml-4 text-red-600 hover:text-red-800"
                 aria-label={`Eliminar ${item.name} ${item.flavor || ''} del carrito`}
               >

@@ -3,19 +3,23 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 export type CartItem = {
-  id: string;
+  id: number; // id del producto
+  product_id: number; // igual a id del producto
   name: string;
-  flavor?: string; 
+  brand?: string;
+  image: string;
   price: number;
   quantity: number;
-  image: string; // <-- agregar imagen
+  flavor?: string;
+  flavor_id?: number;
+  category_key?: string;
 };
 
 
 type CartContextType = {
   cart: CartItem[];
   addToCart: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
-  removeFromCart: (id: string, flavor?: string) => void;
+  removeFromCart: (id: number, flavor_id?: number) => void;
   clearCart: () => void;
   cartTotal: number;
 };
@@ -29,12 +33,20 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 const addToCart = (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
   const qtyToAdd = item.quantity ?? 1;
   setCart((prev) => {
+    // Considera todos los atributos relevantes para identificar una línea única
     const found = prev.find(
-      (p) => p.id === item.id && p.flavor === item.flavor
+      (p) =>
+        p.product_id === item.product_id &&
+        p.flavor_id === item.flavor_id &&
+        p.brand === item.brand &&
+        p.category_key === item.category_key
     );
     if (found) {
       return prev.map((p) =>
-        p.id === item.id && p.flavor === item.flavor
+        p.product_id === item.product_id &&
+        p.flavor_id === item.flavor_id &&
+        p.brand === item.brand &&
+        p.category_key === item.category_key
           ? { ...p, quantity: p.quantity + qtyToAdd }
           : p
       );
@@ -46,9 +58,9 @@ const addToCart = (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => 
 
 
 
-  const removeFromCart = (id: string, flavor?: string) => {
+  const removeFromCart = (id: number, flavor_id?: number) => {
     setCart((prev) =>
-      prev.filter((item) => !(item.id === id && item.flavor === flavor))
+      prev.filter((item) => !(item.product_id === id && item.flavor_id === flavor_id))
     );
   };
 

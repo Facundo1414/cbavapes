@@ -1,11 +1,10 @@
 import './globals.css'
 import { ReactNode } from 'react'
 import { CartProvider } from '@/context/CartContext'
-import CartSidebar from '@/components/CartSidebar'
 import CartBarMobile from '@/components/CartBarMobile'
 import Header from '@/components/Header'
-import DesktopBlocker from '@/components/DesktopBlocker'
-import { AuthProvider } from '@/context/AuthContext'
+import Footer from '@/components/Footer'
+import SessionProvider from '@/components/SessionProvider'
 
 
 import { Inter } from 'next/font/google'
@@ -26,16 +25,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es" className={inter.variable}>
       <body className="bg-gray-50 text-gray-900 min-h-screen flex flex-col relative font-sans">
-        <AuthProvider>
-          <ServiceWorkerRegister/>
-          <DesktopBlocker />
-          <CartProvider>
-            <Header />
-            <CartSidebar />
-            <CartBarMobile />
-            <main className="flex-1 bg-gray-50">{children}</main>
-          </CartProvider>
-        </AuthProvider>
+        <SessionProvider>
+            <ServiceWorkerRegister/>
+            <CartProvider>
+              <Header />
+              {/* <CartSidebar /> eliminado: ahora se controla desde Header */}
+              <CartBarMobile />
+              <main className="flex-1 bg-gray-50 pt-20">{children}</main>
+              <Footer />
+            </CartProvider>
+        </SessionProvider>
       </body>
     </html>
   )

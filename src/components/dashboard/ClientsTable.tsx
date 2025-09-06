@@ -9,7 +9,21 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table'
-import { Client } from '@/app/dashboard/page'
+// Define the Client type here if not available elsewhere
+export interface Client {
+  clienteId: number
+  nombre: string
+  telefono: string
+  fechaCompra: string
+  producto: string
+  sabor: string
+  precio: number
+  pagado: string
+  entregado: string
+  seguimiento: string
+  cupon: string
+  notas: string
+}
 
 
 

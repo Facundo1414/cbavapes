@@ -1,15 +1,23 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
+import { useSupabaseUser } from '@/components/hook/useSupabaseUser'
+import { useCart } from '@/context/CartContext'
+import { IoCartOutline } from 'react-icons/io5'
+import { MdHelpOutline } from 'react-icons/md'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { MdMenu, MdLocationOn } from 'react-icons/md'
-import { FaInstagram } from 'react-icons/fa'
+import { MdMenu, MdLocationOn, MdStorefront } from 'react-icons/md'
+import { FaInstagram, FaRegUser } from 'react-icons/fa'
 import { LoadingSpinner } from './ui/loading-spinner'
-
+import CartSidebar from './CartSidebar'
 export default function Header() {
+  const { user, loading } = useSupabaseUser();
   const [open, setOpen] = useState(false)
   const [showMapModal, setShowMapModal] = useState(false)
   const [isLoadingMap, setIsLoadingMap] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false); // Para el sidebar del carrito
+  const { cart } = useCart();
 
   const instagramUrl = 'https://www.instagram.com/cbavapes_/'
   const homeUrl = '/'
@@ -21,7 +29,7 @@ export default function Header() {
   return (
     <>
       {/* Header */}
-      <header className="fixed  w-full top-0 z-50 bg-black border-b  py-2 px-4 flex justify-between items-center">
+      <header className="fixed w-full top-0 z-50 bg-black py-2 px-4 flex justify-between items-center">
         {/* Menu tipo Drawer */}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger aria-label="Toggle menu" className="focus:outline-none text-white">
@@ -31,7 +39,27 @@ export default function Header() {
           <SheetContent side="left" className="w-64 pt-16">
             <SheetTitle className="sr-only">Menú principal</SheetTitle>
 
-            <nav className="flex flex-col gap-4 px-4">
+            <nav className="flex flex-col gap-4 px-4 h-full">
+              {/* Botón login/profile  */}
+              {!loading && (
+                user ? (
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-2 text-lg font-medium text-gray-700 hover:text-violet-600"
+                  >
+                    <FaRegUser size={20} />
+                    Mi Perfil
+                  </Link>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="flex items-center gap-2 text-lg font-medium text-gray-700 hover:text-violet-600"
+                  >
+                    <FaRegUser size={20} />
+                    Iniciar Sesión
+                  </Link>
+                )
+              )}
               <a
                 href={instagramUrl}
                 target="_blank"
@@ -41,65 +69,100 @@ export default function Header() {
                 <FaInstagram size={20} />
                 Instagram
               </a>
-            <button
-              onClick={() => {
-                setOpen(false);
-                setIsLoadingMap(true);     // 👈 Mostrar loading
-                setShowMapModal(true);     // Mostrar modal
-              }}
-              className="flex items-center gap-2 text-left text-lg font-medium text-gray-700 hover:text-violet-600"
-            >
-              <MdLocationOn size={20} />
-              Ubicación
-            </button>
-
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  setIsLoadingMap(true);     // 👈 Mostrar loading
+                  setShowMapModal(true);     // Mostrar modal
+                }}
+                className="flex items-center gap-2 text-left text-lg font-medium text-gray-700 hover:text-violet-600"
+              >
+                <MdLocationOn size={20} />
+                Ubicación
+              </button>
+              <a
+                href="/instructivo"
+                className="flex items-center gap-2 text-left text-lg font-medium text-black hover:text-violet-600"
+                onClick={() => setOpen(false)}
+              >
+                <MdHelpOutline size={20} />
+                Qué sabor elegir
+              </a>
+              <a
+                href="/demo"
+                className="flex items-center gap-2 text-left text-lg font-medium text-black hover:text-violet-600"
+                onClick={() => setOpen(false)}
+              >
+                <MdStorefront size={20} />
+                Quiero mi tienda
+              </a>
+              <div className="mt-auto pt-4 border-t pb-8 md:block hidden">
+                <a
+                  href="/admin"
+                  className="flex items-center gap-2 text-lg font-medium text-gray-700 hover:text-violet-600"
+                  onClick={() => setOpen(false)}
+                >
+                  <span className="font-bold">Admin</span>
+                </a>
+              </div>
             </nav>
           </SheetContent>
         </Sheet>
 
-        {/* Logo a la derecha */}
-        <a href={homeUrl} className="text-xl font-bold text-gray-900">
-          <img src="/images/logo.png" alt="cba vapes" className="h-16 self-center " />
-        </a>
+        {/* Logo y carrito desktop */}
+        <div className="flex items-center gap-6">
+          {/* Ícono carrito solo desktop */}
+          <button
+            className={`hidden md:flex items-center justify-center relative order-1 md:order-none transition-colors duration-200 ${cart.length > 0 ? 'text-green-500' : 'text-white'}`}
+            aria-label="Abrir carrito"
+            onClick={() => setCartOpen(true)}
+          >
+            <IoCartOutline size={32} />
+          </button>
+          <a href={homeUrl} className="text-xl font-bold text-gray-900">
+            <img src="/images/logo.webp" alt="cba vapes" className="h-16 self-center " />
+          </a>
+        </div>
       </header>
 
       {/* Modal para Google Maps */}
-{showMapModal && (
-  <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[100]">
-    <div className="bg-white rounded-lg w-11/12 max-w-lg p-4 relative shadow-lg">
-      <button
-        onClick={() => {
-          setShowMapModal(false);
-          setIsLoadingMap(false);
-        }}
-        className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-2xl font-bold leading-none"
-        aria-label="Cerrar mapa"
-      >
-        &times;
-      </button>
-      <h2 className="text-lg font-semibold mb-4">Dónde retirar pedidos</h2>
+      {/* CartSidebar como Drawer solo desktop */}
+      <CartSidebar open={cartOpen} setOpen={setCartOpen} />
+      {showMapModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[100]">
+          <div className="bg-white rounded-lg w-11/12 max-w-lg p-4 relative shadow-lg">
+            <button
+              onClick={() => {
+                setShowMapModal(false);
+                setIsLoadingMap(false);
+              }}
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-2xl font-bold leading-none"
+              aria-label="Cerrar mapa"
+            >
+              &times;
+            </button>
+            <h2 className="text-lg font-semibold mb-4">Dónde retirar pedidos</h2>
 
-      <div className="w-full h-64 flex items-center justify-center relative">
-        {isLoadingMap && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
-            <LoadingSpinner className="w-8 h-8 text-violet-600" />
+            <div className="w-full h-64 flex items-center justify-center relative">
+              {isLoadingMap && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+                  <LoadingSpinner className="w-8 h-8 text-violet-600" />
+                </div>
+              )}
+              <iframe
+                src={mapsUrl}
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                title="Ubicación Google Maps - Barrio Smata Córdoba"
+                onLoad={() => setIsLoadingMap(false)} // 👈 Oculta spinner al cargar
+              />
+            </div>
           </div>
-        )}
-        <iframe
-          src={mapsUrl}
-          width="100%"
-          height="100%"
-          style={{ border: 0 }}
-          allowFullScreen
-          loading="lazy"
-          title="Ubicación Google Maps - Barrio Smata Córdoba"
-          onLoad={() => setIsLoadingMap(false)} // 👈 Oculta spinner al cargar
-        />
-      </div>
-    </div>
-  </div>
-)}
-
+        </div>
+      )}
     </>
   )
 }

@@ -6,9 +6,12 @@ import { useState, useEffect } from 'react'
 import { IoArrowBack } from 'react-icons/io5'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ProductCarousel } from '@/components/ui/ProductCarousel'
+import { ProductCarouselDesktop } from '@/components/ui/ProductCarouselDesktop'
 import { useProducts, ProductFull } from '@/app/api/products/useProducts'
 import { toast, Toaster } from 'sonner' 
+import PageHeader from '@/components/PageHeader'
 
 type Option = {
   id: string
@@ -30,29 +33,29 @@ const { addToCart, cart } = useCart();
 
   useEffect(() => {
     if (!loading && productId) {
-      const found = products.find(p => p.productId === productId)
-      setProduct(found ?? null)
+      const found = products.find(p => String(p.id) === String(productId));
+      setProduct(found ?? null);
 
       if (found) {
         const flavorsOptions = found.flavors.map(f => ({
-          id: f.flavorId,
+          id: String(f.id),
           name: f.flavor,
           price: found.price,
           stock: f.stock,
-        })) 
+        }));
 
         flavorsOptions.sort((a, b) => {
-          if (a.stock > 0 && b.stock === 0) return -1
-          if (a.stock === 0 && b.stock > 0) return 1
-          return 0
-        })
+          if (a.stock > 0 && b.stock === 0) return -1;
+          if (a.stock === 0 && b.stock > 0) return 1;
+          return 0;
+        });
 
-        setProductOptions(flavorsOptions)
+        setProductOptions(flavorsOptions);
       } else {
-        setProductOptions([])
+        setProductOptions([]);
       }
     }
-  }, [loading, productId, products])
+  }, [loading, productId, products]);
 
   const handleQuantityChange = (id: string, delta: number) => {
     setQuantities(prev => {
@@ -74,30 +77,42 @@ const handleAddToCart = () => {
     const quantityToAdd = quantities[opt.id] || 0;
     if (quantityToAdd === 0) return;
 
+    // Buscar en el carrito la cantidad actual de ese producto/sabor
     const currentInCart = cart.find(
-      (item) => item.id === `${product?.productId}-${opt.id}`
+      (item) => item.product_id === product?.id && item.flavor_id === Number(opt.id)
     )?.quantity ?? 0;
 
-    const maxAddable = opt.stock - currentInCart;
+    // Si ya está en el carrito y sumar excede el stock, no permitir
+    if (currentInCart + quantityToAdd > opt.stock) {
+      mensajes.push(`No se puede agregar más de ${opt.stock} unidades de ${opt.name} (stock máximo alcanzado)`);
+      return;
+    }
 
-    if (maxAddable <= 0) return;
+    // Si ya está todo el stock en el carrito, no permitir agregar más
+    if (currentInCart >= opt.stock) {
+      mensajes.push(`Ya tienes el máximo de ${opt.name} en el carrito (stock: ${opt.stock})`);
+      return;
+    }
 
-    const finalQtyToAdd = Math.min(quantityToAdd, maxAddable);
+    // Generar array de imágenes
+    const images = [product?.image1, product?.image2, product?.image3].filter(Boolean);
 
-    if (finalQtyToAdd <= 0) return;
-
-    mensajes.push(
-      `Se ${finalQtyToAdd === 1 ? 'agregó' : 'agregaron'} ${finalQtyToAdd} ${finalQtyToAdd === 1 ? 'unidad' : 'unidades'} de ${opt.name}`
-    );
-    
     addToCart({
-      id: `${product?.productId}-${opt.id}`,
-      name: `${product?.name} - ${opt.name}`,
+      id: product?.id ?? 0,
+      product_id: product?.id ?? 0,
+      flavor_id: Number(opt.id),
+      name: product?.name ? `${product.name} - ${opt.name}` : opt.name,
+      brand: product?.brand ?? '',
+      image: images[0] ?? '/images/placeholder.png',
       price: opt.price,
-      image: product?.images[0] ?? '/images/placeholder.png',
-      quantity: finalQtyToAdd,
+      quantity: quantityToAdd,
+      flavor: opt.name,
+      category_key: product?.category ?? '',
     });
 
+    mensajes.push(
+      `Se ${quantityToAdd === 1 ? 'agregó' : 'agregaron'} ${quantityToAdd} ${quantityToAdd === 1 ? 'unidad' : 'unidades'} de ${opt.name}`
+    );
     anyAdded = true;
   });
 
@@ -125,25 +140,46 @@ const handleAddToCart = () => {
     return acc + qty * opt.price
   }, 0)
 
-  if (loading) return <p>Cargando producto...</p>
+  if (loading) return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-4">
+      <div className="w-full max-w-xl">
+        <Skeleton className="h-8 w-1/2 mb-6" />
+        <Skeleton className="h-80 w-full mb-8 rounded-xl" />
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full rounded-lg" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
   if (!product) return <p>Producto no encontrado</p>
 
   return (
-    <div className="min-h-screen pb-24 pt-20">
-      <header className="sticky top-0 z-40 bg-white border-b px-4 py-3 flex items-center gap-3">
-        <Button variant="ghost" size="icon"  onClick={() => router.back()}>
-          <IoArrowBack size={24} />
-        </Button>
-        <h1 className="text-lg font-semibold">{product.name}</h1>
-      </header>
+    <div className="min-h-screen">
 
-      <div className="min-h-[400px] py-4 relative z-10">
-        <ProductCarousel images={product.images.length > 0 ? product.images : ['/images/placeholder.png']} />
+      <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+        <PageHeader title={product.name} />
       </div>
-
-      <main className="px-4 max-w-xl mx-auto">
+      <main className="max-w-5xl mx-auto flex flex-col min-h-screen pt-2 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-[400px] py-4 relative z-10">
+          {(() => {
+            const images = [product.image1, product.image2, product.image3].filter((img): img is string => typeof img === 'string' && !!img);
+            return (
+              <>
+                {/* Mobile: carrusel original */}
+                <div className="block md:hidden">
+                  <ProductCarousel images={images.length > 0 ? images : ['/images/placeholder.png']} />
+                </div>
+                {/* Desktop: carrusel adaptado */}
+                <div className="hidden md:block">
+                  <ProductCarouselDesktop images={images.length > 0 ? images : ['/images/placeholder.png']} />
+                </div>
+              </>
+            );
+          })()}
+        </div>
         <h2 className="text-xl font-bold mb-4">Seleccioná sabores</h2>
-
         <div className="max-h-[320px] overflow-y-auto pb-[60px]">
           <Card className="divide-y">
             {productOptions.map(opt => (
@@ -151,8 +187,8 @@ const handleAddToCart = () => {
                 key={opt.id}
                 className="flex items-center justify-between px-4 h-[82px]"
               >
-                <div className="flex flex-col justify-center h-full">
-                  <p className="font-medium text-lg m-0">{opt.name}</p>
+                <div className="flex flex-col justify-center h-full min-w-0">
+                  <p className="font-medium text-lg m-0 break-words truncate md:whitespace-normal md:break-words md:truncate-none" style={{ wordBreak: 'break-word' }}>{opt.name}</p>
                   <p className="text-sm text-gray-500 m-0">
                     ${opt.price.toLocaleString('es-ES')}
                   </p>
@@ -186,17 +222,18 @@ const handleAddToCart = () => {
             ))}
           </Card>
         </div>
+          <div className=" mt-4">
+            <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+              <Button
+                className="w-full py-6 text-lg"
+                disabled={totalPrice === 0}
+                onClick={handleAddToCart}
+              >
+                Agregar al carrito (${totalPrice.toLocaleString('es-ES')})
+              </Button>
+            </div>
+          </div>
       </main>
-
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-md px-4 py-3">
-        <Button
-          className="w-full py-6 text-lg"
-          disabled={totalPrice === 0}
-          onClick={handleAddToCart}
-        >
-          Agregar al carrito (${totalPrice.toLocaleString('es-ES')})
-        </Button>
-      </div>
       <Toaster position="top-center" duration={3000} richColors />
     </div>
   )
