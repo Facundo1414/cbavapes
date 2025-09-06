@@ -4,11 +4,7 @@ import { fetchProductsServer } from '@/app/api/products/fetchProductsServer';
 import type { ProductFull } from '@/app/api/products/useProducts';
 import { supabaseServer } from '@/utils/supabaseServer';
 
-type CategoryPageProps = {
-  params: { category: string }
-};
-
-export default async function CategoryPage({ params }: CategoryPageProps) {
+export default async function CategoryPage({ params }: { params: { category: string } }) {
   const { category } = params;
   const products: ProductFull[] = await fetchProductsServer();
 
