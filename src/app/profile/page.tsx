@@ -20,19 +20,57 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import PaginationSimple from '@/components/ui/PaginationSimple';
 
+type Compra = {
+  id: string;
+  total: number;
+  created_at: string;
+  status: string;
+};
 
+type OrderItem = {
+  id: string;
+  order_id: string;
+  product_name: string;
+  flavor: string;
+  flavor_id: string;
+  quantity: number;
+};
+
+type Profile = {
+  id: string;
+  email: string;
+  name?: string;
+  phone?: string;
+  address?: string;
+  neighborhood?: string;
+};
+
+type Valoracion = {
+  id: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  flavor?: { id: string; name: string };
+};
+
+type SelectedSabor = {
+  compra: Compra;
+  sabor: string;
+  flavor_id: string;
+  product_name: string;
+};
 
 export default function ProfilePage() {
   const { session, supabaseClient } = useSessionContext();
   // Estado para modal de valoración
   const [openRatingModal, setOpenRatingModal] = useState(false);
-  const [selectedSabor, setSelectedSabor] = useState<any>(null);
+  const [selectedSabor, setSelectedSabor] = useState<SelectedSabor | null>(null);
   const [ratingValue, setRatingValue] = useState(0);
   const [ratingComment, setRatingComment] = useState('');
 
   // Compras y productos reales
-  const [compras, setCompras] = useState<any[]>([]); // [{id, total, created_at, status, ...}]
-  const [orderItems, setOrderItems] = useState<any[]>([]); // [{order_id, product_name, flavor, flavor_id, quantity, ...}]
+  const [compras, setCompras] = useState<Compra[]>([]); // [{id, total, created_at, status, ...}]
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]); // [{order_id, product_name, flavor, flavor_id, quantity, ...}]
   const [comprasLoading, setComprasLoading] = useState(false);
 
   // Traer compras y productos del usuario
@@ -73,10 +111,10 @@ export default function ProfilePage() {
     }
     fetchComprasYProductos();
   }, [session, supabaseClient]);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('datos');
-  const [valoracionesReal, setValoracionesReal] = useState<any[]>([]);
+  const [valoracionesReal, setValoracionesReal] = useState<Valoracion[]>([]);
   // Para edición de valoraciones
   const [editRatingId, setEditRatingId] = useState<string|null>(null);
   const [editRatingValue, setEditRatingValue] = useState(0);
@@ -134,7 +172,12 @@ export default function ProfilePage() {
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
       if (!error && data) {
-        setValoracionesReal(data);
+        // Map flavor from array to object (Supabase returns as array)
+        const mapped = data.map((v: any) => ({
+          ...v,
+          flavor: Array.isArray(v.flavor) ? v.flavor[0] : v.flavor
+        }));
+        setValoracionesReal(mapped);
       } else {
         setValoracionesReal([]);
       }
@@ -302,7 +345,7 @@ export default function ProfilePage() {
                     variant="secondary"
                   >Cancelar</Button>
                   <Button
-                    disabled={ratingValue === 0 || valoracionesLoading || (selectedSabor && valoracionesReal.some(v => v.flavor?.id === selectedSabor.flavor_id))}
+                    disabled={ratingValue === 0 || valoracionesLoading || !!(selectedSabor && valoracionesReal.some(v => v.flavor?.id === selectedSabor.flavor_id))}
                     onClick={async () => {
                       if (!selectedSabor || ratingValue === 0 || !session?.user) return;
                       // Evitar duplicados
