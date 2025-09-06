@@ -7,7 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Mostrar el nombre de la categoría usando category_key
-function getCategoryName(product: Product, categories: any[]) {
+type Category = {
+  key: string;
+  name: string;
+};
+
+type Flavor = {
+  id: number;
+  stock?: number;
+};
+
+function getCategoryName(product: Product, categories: Category[]) {
   if (!product.category_key) return "-";
   const cat = categories.find((c) => c.key === product.category_key);
   return cat ? cat.name : product.category_key;
@@ -49,10 +59,10 @@ export function ProductsTable() {
     if (error) setError(error.message);
     else {
       // Calcular el stock total sumando el stock de cada flavor
-      const productsWithStock = (data || []).map((product: any) => ({
+      const productsWithStock: Product[] = (data || []).map((product: any) => ({
         ...product,
         stock: Array.isArray(product.flavors)
-          ? product.flavors.reduce((sum: number, flavor: any) => sum + (flavor.stock || 0), 0)
+          ? (product.flavors as Flavor[]).reduce((sum, flavor) => sum + (flavor.stock || 0), 0)
           : 0,
       }));
       // Ordenar alfabéticamente por nombre
@@ -68,7 +78,7 @@ export function ProductsTable() {
 
   async function handleSave(values: ProductFormValues) {
     // Enviar todos los campos requeridos, nunca stock ni flavors
-    let clean: any = {
+    let clean: Omit<Product, "id" | "stock"> & Partial<Product> = {
       name: values.name,
       price: values.price,
       brand: values.brand,
@@ -84,12 +94,12 @@ export function ProductsTable() {
         ...clean,
       };
     }
-    if ('stock' in clean) delete clean.stock;
-    if ('flavors' in clean) delete clean.flavors;
+    if ('stock' in clean) delete (clean as any).stock;
+    if ('flavors' in clean) delete (clean as any).flavors;
     if (editProduct) {
-  await supabaseBrowser.from("products").update(clean).eq("id", editProduct.id);
+      await supabaseBrowser.from("products").update(clean).eq("id", editProduct.id);
     } else {
-  await supabaseBrowser.from("products").insert([clean]);
+      await supabaseBrowser.from("products").insert([clean]);
     }
     setShowForm(false);
     setEditProduct(null);

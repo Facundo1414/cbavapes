@@ -2,9 +2,25 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import OrderItemsRow from "./OrderItemsRow";
 
+type Order = {
+  id: number;
+  client_id: number;
+  total: number;
+  status: string;
+  paid: boolean;
+  delivered: boolean;
+  created_at: string;
+  coupon?: string;
+  notes?: string;
+  followup_done?: boolean;
+};
+type Client = {
+  id: number;
+  name: string;
+};
 type OrdersTableListProps = {
-  paginatedOrders: any[];
-  clients: any[];
+  paginatedOrders: Order[];
+  clients: Client[];
   expanded: { [id: number]: boolean };
   setExpanded: React.Dispatch<React.SetStateAction<{ [id: number]: boolean }>>;
   togglePaid: (orderId: number, current: boolean) => void;

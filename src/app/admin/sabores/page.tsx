@@ -40,7 +40,21 @@ export default function AdminSabores() {
   // Paginación por brand
   const BRANDS_PER_PAGE = 5;
   const [page, setPage] = useState(1);
-  const [flavors, setFlavors] = useState<any[]>([]);
+  type Flavor = {
+    id: number;
+    flavor: string;
+    product_id: number;
+    products?: { name?: string; brand?: string };
+    stock?: number;
+    purchased_quantity?: number;
+    quantity_sold?: number;
+    discounts_gifts?: number;
+    price?: number;
+    total_sales?: number;
+    actual_total_sales?: number;
+    modified?: boolean;
+  };
+  const [flavors, setFlavors] = useState<Flavor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,7 +66,12 @@ export default function AdminSabores() {
     setLoading(true);
   const { data, error } = await supabaseBrowser.from("flavors").select("id, flavor, product_id, products(name, brand), stock, purchased_quantity, quantity_sold, discounts_gifts, price, total_sales, actual_total_sales").order("flavor", { ascending: true });
     if (error) setError(error.message);
-    else setFlavors(data || []);
+    else setFlavors(
+      (data || []).map((f: any) => ({
+        ...f,
+        products: Array.isArray(f.products) ? f.products[0] : f.products
+      }))
+    );
     setLoading(false);
   }
 
@@ -93,7 +112,7 @@ export default function AdminSabores() {
               {(() => {
                 if (!flavors.length) return null;
                 // Agrupar por brand, luego por producto
-                const brandGroups: Record<string, any[]> = {};
+                const brandGroups: Record<string, Flavor[]> = {};
                 for (const f of flavors) {
                   const brand = f.products?.brand || '-';
                   if (!brandGroups[brand]) brandGroups[brand] = [];
@@ -106,7 +125,7 @@ export default function AdminSabores() {
                   ...paginatedBrands.flatMap(brand => {
                     const brandItems = brandGroups[brand];
                     // Agrupar por producto dentro de cada brand
-                    const productGroups: Record<string, any[]> = {};
+                    const productGroups: Record<string, Flavor[]> = {};
                     for (const f of brandItems) {
                       const product = f.products?.name || '-';
                       if (!productGroups[product]) productGroups[product] = [];
@@ -120,7 +139,7 @@ export default function AdminSabores() {
                         <tr key={brand + product} className="bg-gray-100">
                           <td colSpan={9} className="px-3 py-2 font-semibold text-base text-gray-800">{product}</td>
                         </tr>,
-                        ...(items as any[]).map(f => (
+                        ...items.map(f => (
                           <tr key={f.id} className="border-t">
                             <td className="px-3 py-2 text-left">{f.flavor}</td>
                             <td className="px-3 py-2 text-left">{f.products?.name || '-'}</td>

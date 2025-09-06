@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
-import { ProductForm } from '../../app/admin/productos/ProductForm';
+import { ProductForm, ProductFormValues } from '../../app/admin/productos/ProductForm';
 import { supabaseBrowser } from '@/utils/supabaseClientBrowser';
 
 interface ProductQuickCreateModalProps {
@@ -13,18 +13,18 @@ const ProductQuickCreateModal: React.FC<ProductQuickCreateModalProps> = ({ open,
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSave(values: any) {
+  async function handleSave(values: ProductFormValues) {
     setSubmitting(true);
     setError(null);
     try {
   // Eliminar id y d si existen antes de insertar
-  const { id, d, ...productData } = values;
+  const { id, ...productData } = values;
   const { error } = await supabaseBrowser.from('products').insert([productData]);
       if (error) throw error;
       onCreated?.();
       onClose();
-    } catch (e: any) {
-      setError(e.message || 'Error al crear producto');
+    } catch (e) {
+      setError((e as Error).message || 'Error al crear producto');
     } finally {
       setSubmitting(false);
     }

@@ -37,7 +37,14 @@ export default function OrderQuickCreateModal({ open, onClose, onCreated }: Prop
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [clientSearch, setClientSearch] = useState("");
   const [newClient, setNewClient] = useState({ name: "", phone: "", notes: "" });
-  const [items, setItems] = useState<any[]>([{
+  type OrderItemDraft = {
+    product: Product | null;
+    flavor: Flavor | null;
+    quantity: number;
+    price: number;
+    discount: number;
+  };
+  const [items, setItems] = useState<OrderItemDraft[]>([{
     product: null,
     flavor: null,
     quantity: 1,
@@ -136,15 +143,17 @@ export default function OrderQuickCreateModal({ open, onClose, onCreated }: Prop
     }
     const orderId = orderData[0].id;
     // Crear items del pedido
-    const itemsToInsert = items.map(item => ({
-  order_id: orderId,
-  product_id: item.product.id,
-  product_name: item.product.name,
-  flavor_id: item.flavor.id,
-  flavor: item.flavor.flavor,
-  price: item.price,
-  quantity: item.quantity,
-    }));
+    const itemsToInsert = items
+      .filter(item => item.product && item.flavor)
+      .map(item => ({
+        order_id: orderId,
+        product_id: item.product!.id,
+        product_name: item.product!.name,
+        flavor_id: item.flavor!.id,
+        flavor: item.flavor!.flavor,
+        price: item.price,
+        quantity: item.quantity,
+      }));
     const { error: itemError } = await supabaseBrowser.from("order_items").insert(itemsToInsert);
     if (itemError) {
       setError("Error creando items del pedido");
@@ -154,6 +163,7 @@ export default function OrderQuickCreateModal({ open, onClose, onCreated }: Prop
     // Si el pedido se crea como entregado, actualizar stock de sabores
     if (delivered) {
       for (const item of items) {
+        if (!item.flavor) continue;
         // Obtener stock actual
         const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock").eq("id", item.flavor.id).single();
         if (!flavorError && flavorData) {

@@ -3,10 +3,14 @@ import { supabaseBrowser } from "@/utils/supabaseClientBrowser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+type Product = { id: number; name: string };
+type Flavor = { id: number; flavor: string };
+type Provider = { id: number; name: string };
+
 export default function ImportCreateModal({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated?: () => void }) {
-  const [products, setProducts] = useState<any[]>([]);
-  const [flavors, setFlavors] = useState<any[]>([]);
-  const [providers, setProviders] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [flavors, setFlavors] = useState<Flavor[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
   const [form, setForm] = useState({
     product_id: "",
     flavor_id: "",

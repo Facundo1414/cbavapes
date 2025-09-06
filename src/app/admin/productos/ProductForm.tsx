@@ -62,7 +62,7 @@ export function ProductForm({ initial, onSave, onCancel }: {
           <option value="" disabled>
             {loadingCategories ? "Cargando..." : "Selecciona una categoría"}
           </option>
-          {categories.map((cat: any) => (
+          {categories.map((cat: { key: string; name: string }) => (
             <option key={cat.key} value={cat.key}>{cat.name}</option>
           ))}
         </select>

@@ -13,8 +13,13 @@ type OrderItemInput = {
   discount?: number;
 };
 
+type Client = {
+  id: number;
+  name: string;
+  [key: string]: any;
+};
 type Props = {
-  clients: any[];
+  clients: Client[];
   onCreated: () => void;
   orderItems: OrderItemInput[];
 };

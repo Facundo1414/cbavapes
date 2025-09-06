@@ -1,25 +1,4 @@
-// IMPORTANTE: Todas las peticiones a Supabase en este archivo requieren que el usuario esté logueado.
-// El JWT debe tener el claim "role": "authenticated".
-// Si se usa el token anónimo ("role": "anon"), las policies de Supabase NO permitirán acceso a los datos.
-// ---
-// IMPORTANTE: Para que la gestión de pedidos funcione correctamente con RLS en Supabase,
-// debes tener políticas de SELECT para las tablas orders, clients y order_items.
-// Ejemplo de política temporal para debug (ver todos los datos):
-//
-// create policy "Debug SELECT all" on public.orders for select to public using (true);
-// create policy "Debug SELECT all" on public.clients for select to public using (true);
-// create policy "Debug SELECT all" on public.order_items for select to public using (true);
-//
-// Para producción, usa una función is_admin() que lea el claim correcto del JWT:
-//
-// create or replace function public.is_admin() returns boolean language sql stable as $$
-//   select coalesce((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin', false)
-// $$;
-//
-// Y una política:
-// create policy "Admin full access" on public.orders for all to public using (is_admin());
-// (Repetir para clients y order_items si quieres acceso admin global)
-// ---
+
 
 "use client";
 import React, { useEffect, useState, useRef } from "react";
@@ -35,31 +14,32 @@ import OrdersTableFilters from "./OrdersTableFilters";
 import OrdersTablePagination from "./OrdersTablePagination";
 import OrdersTableList from "./OrdersTableList";
 
-
-
+  // Estado para los items del pedido
+  type OrderItemDraft = {
+    product_id: number;
+    product_name: string;
+    brand: string;
+    flavor_id: number;
+    flavor: string;
+    qty: number;
+    price: number;
+  };
+  type Order = {
+    id: number;
+    client_id: number;
+    created_at: string;
+    paid: boolean;
+    delivered: boolean;
+    [key: string]: any;
+  };
+  type Client = {
+    id: number;
+    name: string;
+    [key: string]: any;
+  };
 
 export function OrdersTable() {
-  // Log de sesión y JWT para depuración
-  React.useEffect(() => {
-    (async () => {
-      if (typeof window !== 'undefined' && 'supabase' in window) {
-        // @ts-ignore
-        const { data } = await window.supabase.auth.getSession();
-        console.log('Supabase session:', data?.session);
-        if (data?.session) {
-          const jwt = data.session.access_token;
-          try {
-            const payload = JSON.parse(atob(jwt.split('.')[1]));
-            console.log('JWT payload:', payload);
-          } catch (e) {
-            console.log('No se pudo decodificar el JWT');
-          }
-        } else {
-          console.log('No hay sesión activa de Supabase');
-        }
-      }
-    })();
-  }, []);
+
   // Eliminar pedido y sus detalles
   async function handleDeleteOrder(orderId: number) {
     if (!window.confirm('¿Seguro que querés eliminar este pedido y sus productos?')) return;
@@ -73,8 +53,8 @@ export function OrdersTable() {
   const { products, loading: loadingProducts } = useProducts();
   // Estado para el modal
   const [modalOpen, setModalOpen] = useState(false);
-  // Estado para los items del pedido
-  const [orderItems, setOrderItems] = useState<any[]>([]);
+
+  const [orderItems, setOrderItems] = useState<OrderItemDraft[]>([]);
   // Estado para el item en edición
   const [selectedProductId, setSelectedProductId] = useState<number|null>(null);
   const [selectedFlavorId, setSelectedFlavorId] = useState<number|null>(null);
@@ -129,8 +109,9 @@ export function OrdersTable() {
   await fetchAll();
   }
   const pageSize = 15;
-  const [orders, setOrders] = useState<any[]>([]);
-  const [clients, setClients] = useState<any[]>([]);
+
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<{ [id: number]: boolean }>({});
@@ -161,11 +142,6 @@ export function OrdersTable() {
       .from("clients")
       .select("*");
 
-    // LOG para depuración
-    console.log("ordersData", ordersData);
-    console.log("ordersError", ordersError);
-    console.log("clientsData", clientsData);
-    console.log("clientsError", clientsError);
 
     if (ordersError || clientsError) setError(ordersError?.message || clientsError?.message || null);
     else {
@@ -301,10 +277,10 @@ export function OrdersTable() {
                       ...items,
                       {
                         product_id: selectedProductId,
-                        product_name: prod?.name,
-                        brand: prod?.brand,
+                        product_name: prod?.name || "",
+                        brand: prod?.brand || "",
                         flavor_id: selectedFlavorId,
-                        flavor: flav?.flavor,
+                        flavor: flav?.flavor || "",
                         qty: itemQty,
                         price: itemPrice,
                       }

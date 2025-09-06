@@ -1,5 +1,33 @@
 'use client'
 import { useEffect, useState } from "react";
+
+type StockRow = {
+  id: number;
+  product_id: number;
+  product_name: string;
+  brand: string;
+  flavor_id: number;
+  flavor_name: string;
+  provider_id: number;
+  provider_name: string;
+  unit_cost: number;
+  purchased_quantity: number;
+  sold_quantity: number;
+  current_stock: number;
+  unit_sale_price: number;
+  unit_discount: number;
+  discounts_gifts: number;
+  net_sale_price: number;
+  total_sales: number;
+  unit_gain: number;
+  total_gain: number;
+  real_total_gain: number;
+  real_total_sales: number;
+  margin: number;
+  purchase_date: string;
+  notes: string;
+  total_purchased: number;
+};
 import StockAddImportModal from "./StockAddImportModal";
 import { supabaseBrowser } from "@/utils/supabaseClientBrowser";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,7 +35,7 @@ import { Button } from "@/components/ui/button";
 
 
 export function StockTable() {
-  const [rows, setRows] = useState<any[]>([]);
+  const [rows, setRows] = useState<StockRow[]>([]);
   const [loading, setLoading] = useState(true);
   // Paginación simple por filas
   const ROWS_PER_PAGE = 20;
@@ -61,12 +89,32 @@ export function StockTable() {
     if (error) setError(error.message);
     else {
       setRows(
-        (data || []).map((row: any) => ({
-          ...row,
+        (data || []).map((row: any): StockRow => ({
+          id: row.id,
+          product_id: row.product_id,
           product_name: row.products?.name || "",
           brand: row.products?.brand || "",
+          flavor_id: row.flavor_id,
           flavor_name: row.flavors?.flavor || "",
-          provider_name: row.providers?.name || ""
+          provider_id: row.provider_id,
+          provider_name: row.providers?.name || "",
+          unit_cost: row.unit_cost,
+          purchased_quantity: row.purchased_quantity,
+          sold_quantity: row.sold_quantity,
+          current_stock: row.current_stock,
+          unit_sale_price: row.unit_sale_price,
+          unit_discount: row.unit_discount,
+          discounts_gifts: row.discounts_gifts,
+          net_sale_price: row.net_sale_price,
+          total_sales: row.total_sales,
+          unit_gain: row.unit_gain,
+          total_gain: row.total_gain,
+          real_total_gain: row.real_total_gain,
+          real_total_sales: row.real_total_sales,
+          margin: row.margin,
+          purchase_date: row.purchase_date,
+          notes: row.notes,
+          total_purchased: row.total_purchased,
         }))
       );
     }

@@ -75,7 +75,7 @@ export default function StockMassEdit() {
     if (error) setError(error.message);
     else {
       setRows(
-        (data || []).map((row: any) => ({
+        (data || []).map((row: any): ImportRow => ({
           ...row,
           product_name: row.products?.name || "",
           flavor_name: row.flavors?.flavor || "",
@@ -86,7 +86,7 @@ export default function StockMassEdit() {
     setLoading(false);
   }
 
-  function handleChange(id: number, field: keyof ImportRow, value: any) {
+  function handleChange(id: number, field: keyof ImportRow, value: string | number) {
     setEditValues((prev) => ({
       ...prev,
       [id]: { ...prev[id], [field]: value },
