@@ -1,5 +1,8 @@
 "use client";
 import type { Product } from '@/app/api/products/route';
+import { Skeleton } from '@/components/ui/skeleton';
+import PageHeader from '@/components/PageHeader';
+import ProductList from '@/components/ProductList';
 
 interface CategoryLayoutProps {
   title: string;
