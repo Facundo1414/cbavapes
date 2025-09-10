@@ -1,4 +1,5 @@
 import { supabaseBrowser } from "@/utils/supabaseClientBrowser";
+import { PostgrestError } from "@supabase/supabase-js";
 
 export interface Client {
   id: number;
@@ -25,7 +26,7 @@ export async function getOrCreateClient(
   nombre: string,
   telefono: string
 ): Promise<number> {
-  const { data, error }: { data: { id: number }[] | null; error: any } =
+  const { data, error }: { data: { id: number }[] | null; error: PostgrestError | null } =
     await supabaseBrowser
       .from("clients")
       .select("id")
@@ -45,7 +46,7 @@ export async function getOrCreateClient(
   const {
     data: newClient,
     error: insertError,
-  }: { data: { id: number } | null; error: any } = await supabaseBrowser
+  }: { data: { id: number } | null; error: PostgrestError | null } = await supabaseBrowser
     .from("clients")
     .insert([{ name: nombre, phone: telefono }])
     .select("id")
