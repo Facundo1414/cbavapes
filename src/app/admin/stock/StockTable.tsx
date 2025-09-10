@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from "react";
+import { toast } from "@/components/ui/sonner-toast";
 
 type StockRow = {
   id: number;
@@ -86,8 +87,10 @@ export function StockTable() {
         total_purchased
       `)
       .order("id");
-    if (error) setError(error.message);
-    else {
+    if (error) {
+      setError(error.message);
+      toast.error("Error al cargar el stock.");
+    } else {
       setRows(
         (data || []).map((row: {
           id: number;
@@ -142,6 +145,7 @@ export function StockTable() {
           total_purchased: row.total_purchased,
         }))
       );
+      toast.success("Stock cargado exitosamente.");
     }
     setLoading(false);
   }
@@ -149,6 +153,10 @@ export function StockTable() {
   async function handleSave(id: number) {
   const { purchased_quantity, quantity_sold } = editValues[id];
   const stock = purchased_quantity - quantity_sold;
+  if (stock < 0) {
+    console.error('[Error] No hay suficiente stock para completar la operación en stock.');
+    return;
+  }
   await supabaseBrowser.from("flavors").update({ purchased_quantity, quantity_sold, stock }).eq("id", id);
   setEditing((prev) => ({ ...prev, [id]: false }));
   fetchAll();

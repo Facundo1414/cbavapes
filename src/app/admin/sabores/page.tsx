@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/utils/supabaseClientBrowser";
+import { toast } from "@/components/ui/sonner-toast";
 
 import FlavorQuickCreateModal from "@/components/dashboard/FlavorQuickCreateModal";
 import { Button } from "@/components/ui/button";
@@ -23,18 +24,29 @@ export default function AdminSabores() {
     const saboresModificados = flavors.filter(f => f.modified);
     if (saboresModificados.length === 0) return;
     for (const f of saboresModificados) {
+      const newStock = (f.purchased_quantity ?? 0) - (f.quantity_sold ?? 0) - (f.discounts_gifts ?? 0);
+      const newTotalSales = (f.quantity_sold ?? 0) * (f.price ?? 0);
+      const newActualTotalSales = newTotalSales - ((f.discounts_gifts ?? 0) * (f.price ?? 0));
+
+      if (newStock < 0) {
+        console.error('[Error] No hay suficiente stock para completar la operación en sabores.');
+        toast.error("No hay suficiente stock para completar la operación.");
+        continue;
+      }
+
       await supabaseBrowser.from("flavors").update({
         purchased_quantity: f.purchased_quantity,
         quantity_sold: f.quantity_sold,
         discounts_gifts: f.discounts_gifts,
         price: f.price,
-        stock: f.stock,
-        total_sales: f.total_sales,
-        actual_total_sales: f.actual_total_sales
+        stock: newStock,
+        total_sales: newTotalSales,
+        actual_total_sales: newActualTotalSales
       }).eq("id", f.id);
     }
     // Refrescar datos y limpiar flag de modificado
     fetchFlavors();
+    toast.success("Cambios guardados exitosamente.");
   }
   const [modalOpen, setModalOpen] = useState(false);
   // Paginación por brand

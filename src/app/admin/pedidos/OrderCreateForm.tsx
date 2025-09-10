@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabaseBrowser } from "@/utils/supabaseClientBrowser";
+import { toast } from "@/components/ui/sonner-toast";
 
 type OrderItemInput = {
   product_id: number;
@@ -88,6 +89,21 @@ export default function OrderCreateForm({ clients, onCreated, orderItems }: Prop
         setLoading(false);
         return;
       }
+
+      // Actualizar stock y cantidad vendida
+      for (const item of itemsToInsert) {
+        const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock, quantity_sold").eq("id", item.flavor_id).single();
+        if (!flavorError && flavorData) {
+          const newStock = (flavorData.stock || 0) - (item.quantity || 0);
+          const newSoldQuantity = (flavorData.quantity_sold || 0) + (item.quantity || 0);
+          if (newStock < 0) {
+            alert('No hay suficiente stock para completar el pedido.');
+            setLoading(false);
+            return;
+          }
+          await supabaseBrowser.from("flavors").update({ stock: newStock, quantity_sold: newSoldQuantity }).eq("id", item.flavor_id);
+        }
+      }
     }
     setLoading(false);
     setClientName("");
@@ -97,6 +113,7 @@ export default function OrderCreateForm({ clients, onCreated, orderItems }: Prop
     setDate("");
     nameRef.current?.focus();
     onCreated();
+    toast.success("Orden creada exitosamente.");
   }
 
   return (

@@ -4,6 +4,7 @@ import { supabaseBrowser } from "@/utils/supabaseClientBrowser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useProducts } from "@/app/api/products/useProducts";
+import { toast } from "@/components/ui/sonner-toast";
 // import OrderItemsRow from "./OrderItemsRow";
 
 
@@ -72,20 +73,24 @@ export function OrdersTable() {
     if (!error && items) {
       for (const item of items) {
         // Obtener stock y cantidad vendida actual
-        const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock, sold_quantity").eq("id", item.flavor_id).single();
+        const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock, quantity_sold").eq("id", item.flavor_id).single();
         if (!flavorError && flavorData) {
           let newStock;
           let newSoldQuantity;
           if (!current) {
             // Se marca como pagado: restar stock, aumentar cantidad vendida
             newStock = (flavorData.stock || 0) - (item.quantity || 0);
-            newSoldQuantity = (flavorData.sold_quantity || 0) + (item.quantity || 0);
+            newSoldQuantity = (flavorData.quantity_sold || 0) + (item.quantity || 0);
           } else {
             // Se desmarca: sumar stock, restar cantidad vendida
             newStock = (flavorData.stock || 0) + (item.quantity || 0);
-            newSoldQuantity = (flavorData.sold_quantity || 0) - (item.quantity || 0);
+            newSoldQuantity = (flavorData.quantity_sold || 0) - (item.quantity || 0);
           }
-          await supabaseBrowser.from("flavors").update({ stock: newStock, sold_quantity: newSoldQuantity }).eq("id", item.flavor_id);
+          if (newStock < 0) {
+            console.error('[Error] No hay suficiente stock para completar la operación.');
+            return;
+          }
+          await supabaseBrowser.from("flavors").update({ stock: newStock, quantity_sold: newSoldQuantity }).eq("id", item.flavor_id);
         }
       }
     }
@@ -98,20 +103,24 @@ export function OrdersTable() {
     if (!error && items) {
       for (const item of items) {
         // Obtener stock y cantidad vendida actual
-        const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock, sold_quantity").eq("id", item.flavor_id).single();
+        const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock, quantity_sold").eq("id", item.flavor_id).single();
         if (!flavorError && flavorData) {
           let newStock;
           let newSoldQuantity;
           if (!current) {
             // Se marca como entregado: restar stock, aumentar cantidad vendida
             newStock = (flavorData.stock || 0) - (item.quantity || 0);
-            newSoldQuantity = (flavorData.sold_quantity || 0) + (item.quantity || 0);
+            newSoldQuantity = (flavorData.quantity_sold || 0) + (item.quantity || 0);
           } else {
             // Se desmarca: sumar stock, restar cantidad vendida
             newStock = (flavorData.stock || 0) + (item.quantity || 0);
-            newSoldQuantity = (flavorData.sold_quantity || 0) - (item.quantity || 0);
+            newSoldQuantity = (flavorData.quantity_sold || 0) - (item.quantity || 0);
           }
-          await supabaseBrowser.from("flavors").update({ stock: newStock, sold_quantity: newSoldQuantity }).eq("id", item.flavor_id);
+          if (newStock < 0) {
+            console.error('[Error] No hay suficiente stock para completar la operación.');
+            return;
+          }
+          await supabaseBrowser.from("flavors").update({ stock: newStock, quantity_sold: newSoldQuantity }).eq("id", item.flavor_id);
         }
       }
     }
@@ -152,10 +161,13 @@ export function OrdersTable() {
       .select("*");
 
 
-    if (ordersError || clientsError) setError(ordersError?.message || clientsError?.message || null);
-    else {
+    if (ordersError || clientsError) {
+      setError(ordersError?.message || clientsError?.message || null);
+      toast.error("Ocurrió un error al cargar las órdenes.");
+    } else {
       setOrders(ordersData || []);
       setClients(clientsData || []);
+      toast.success("Órdenes cargadas exitosamente.");
     }
     setLoading(false);
   };
