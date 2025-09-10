@@ -4,7 +4,7 @@ import { supabaseBrowser } from "@/utils/supabaseClientBrowser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useProducts } from "@/app/api/products/useProducts";
-import { toast } from "@/components/ui/sonner-toast";
+import { toast, Toaster } from "sonner";
 // import OrderItemsRow from "./OrderItemsRow";
 
 
@@ -192,6 +192,7 @@ export function OrdersTable() {
 
 
   return (
+    <>
     <div>
       {/* Botón para abrir modal de alta de pedido */}
       <div className="mb-6 flex justify-end">
@@ -376,5 +377,7 @@ export function OrdersTable() {
       />
       <OrdersTablePagination page={page} pageCount={pageCount} setPage={setPage} />
     </div>
+    <Toaster />
+    </>
   );
 }

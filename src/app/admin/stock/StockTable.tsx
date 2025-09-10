@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from "react";
-import { toast } from "@/components/ui/sonner-toast";
+import { toast, Toaster } from "sonner";
 
 type StockRow = {
   id: number;
@@ -178,80 +178,83 @@ export function StockTable() {
   // ...existing code...
 
   return (
-    <div>
-      {/* Título principal se muestra en page.tsx, no aquí */}
-      <div className="mb-4 flex justify-end">
-        <Button onClick={() => setModalOpen(true)}>Agregar línea</Button>
-      </div>
-      <div className="overflow-x-auto w-full">
-  <table className="min-w-full border bg-white rounded shadow text-sm" style={{ minWidth: '1200px' }}>
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="px-3 py-2 text-left min-w-[120px]">Producto</th>
-              <th className="px-3 py-2 text-left min-w-[100px]">Sabor</th>
-              <th className="px-3 py-2 text-left min-w-[120px]">Proveedor</th>
-              <th className="px-3 py-2 text-right min-w-[90px]">Costo unit.</th>
-              <th className="px-3 py-2 text-right min-w-[80px]">Comprados</th>
-              <th className="px-3 py-2 text-right min-w-[80px]">Vendidos</th>
-              <th className="px-3 py-2 text-right min-w-[80px]">Stock</th>
-              <th className="px-3 py-2 text-right min-w-[90px]">Precio venta</th>
-              <th className="px-3 py-2 text-right min-w-[90px]">Desc. unit.</th>
-              <th className="px-3 py-2 text-right min-w-[90px]">Desc./Regalos</th>
-              <th className="px-3 py-2 text-right min-w-[90px]">Precio neto</th>
-              <th className="px-3 py-2 text-right min-w-[90px]">Ventas</th>
-              <th className="px-3 py-2 text-right min-w-[90px]">Ganancia unit.</th>
-              <th className="px-3 py-2 text-right min-w-[90px]">Ganancia total</th>
-              <th className="px-3 py-2 text-right min-w-[90px]">Ganancia real</th>
-              <th className="px-3 py-2 text-right min-w-[90px]">Ventas reales</th>
-              <th className="px-3 py-2 text-right min-w-[80px]">Margen %</th>
-              <th className="px-3 py-2 text-center min-w-[90px]">Fecha</th>
-              <th className="px-3 py-2 text-left min-w-[120px]">Notas</th>
-              <th className="px-3 py-2 text-right min-w-[90px]">Total USD</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedRows.map(row => (
-              <tr key={row.id} className="border-t">
-                <td className="px-3 py-2 text-left">{row.product_name}</td>
-                <td className="px-3 py-2 text-left">{row.flavor_name}</td>
-                <td className="px-3 py-2 text-left">{row.provider_name}</td>
-                <td className="px-3 py-2 text-right">{row.unit_cost}</td>
-                <td className="px-3 py-2 text-right">{row.purchased_quantity}</td>
-                <td className="px-3 py-2 text-right">{row.sold_quantity}</td>
-                <td className="px-3 py-2 text-right font-bold">{row.current_stock}</td>
-                <td className="px-3 py-2 text-right">{row.unit_sale_price}</td>
-                <td className="px-3 py-2 text-right">{row.unit_discount}</td>
-                <td className="px-3 py-2 text-right">{row.discounts_gifts}</td>
-                <td className="px-3 py-2 text-right font-bold">{row.net_sale_price?.toLocaleString()}</td>
-                <td className="px-3 py-2 text-right font-bold">{row.total_sales?.toLocaleString()}</td>
-                <td className="px-3 py-2 text-right font-bold">{row.unit_gain?.toLocaleString()}</td>
-                <td className="px-3 py-2 text-right font-bold">{row.total_gain?.toLocaleString()}</td>
-                <td className="px-3 py-2 text-right font-bold">{row.real_total_gain?.toLocaleString()}</td>
-                <td className="px-3 py-2 text-right font-bold">{row.real_total_sales?.toLocaleString()}</td>
-                <td className="px-3 py-2 text-right font-bold">{((row.margin || 0) * 100).toFixed(2)}%</td>
-                <td className="px-3 py-2 text-center">{row.purchase_date}</td>
-                <td className="px-3 py-2 text-left">{row.notes}</td>
-                <td className="px-3 py-2 text-right">{row.total_purchased}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {/* Controles de paginación */}
-        <div className="flex justify-center items-center gap-2 mt-6">
-          <button
-            className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
-            onClick={() => setPage(page - 1)}
-            disabled={page === 1}
-          >Anterior</button>
-          <span className="font-semibold text-sm">Página {page} de {totalPages}</span>
-          <button
-            className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
-            onClick={() => setPage(page + 1)}
-            disabled={page === totalPages}
-          >Siguiente</button>
+    <>
+      <div>
+        {/* Título principal se muestra en page.tsx, no aquí */}
+        <div className="mb-4 flex justify-end">
+          <Button onClick={() => setModalOpen(true)}>Agregar línea</Button>
         </div>
+        <div className="overflow-x-auto w-full">
+          <table className="min-w-full border bg-white rounded shadow text-sm" style={{ minWidth: '1200px' }}>
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-3 py-2 text-left min-w-[120px]">Producto</th>
+                <th className="px-3 py-2 text-left min-w-[100px]">Sabor</th>
+                <th className="px-3 py-2 text-left min-w-[120px]">Proveedor</th>
+                <th className="px-3 py-2 text-right min-w-[90px]">Costo unit.</th>
+                <th className="px-3 py-2 text-right min-w-[80px]">Comprados</th>
+                <th className="px-3 py-2 text-right min-w-[80px]">Vendidos</th>
+                <th className="px-3 py-2 text-right min-w-[80px]">Stock</th>
+                <th className="px-3 py-2 text-right min-w-[90px]">Precio venta</th>
+                <th className="px-3 py-2 text-right min-w-[90px]">Desc. unit.</th>
+                <th className="px-3 py-2 text-right min-w-[90px]">Desc./Regalos</th>
+                <th className="px-3 py-2 text-right min-w-[90px]">Precio neto</th>
+                <th className="px-3 py-2 text-right min-w-[90px]">Ventas</th>
+                <th className="px-3 py-2 text-right min-w-[90px]">Ganancia unit.</th>
+                <th className="px-3 py-2 text-right min-w-[90px]">Ganancia total</th>
+                <th className="px-3 py-2 text-right min-w-[90px]">Ganancia real</th>
+                <th className="px-3 py-2 text-right min-w-[90px]">Ventas reales</th>
+                <th className="px-3 py-2 text-right min-w-[80px]">Margen %</th>
+                <th className="px-3 py-2 text-center min-w-[90px]">Fecha</th>
+                <th className="px-3 py-2 text-left min-w-[120px]">Notas</th>
+                <th className="px-3 py-2 text-right min-w-[90px]">Total USD</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedRows.map(row => (
+                <tr key={row.id} className="border-t">
+                  <td className="px-3 py-2 text-left">{row.product_name}</td>
+                  <td className="px-3 py-2 text-left">{row.flavor_name}</td>
+                  <td className="px-3 py-2 text-left">{row.provider_name}</td>
+                  <td className="px-3 py-2 text-right">{row.unit_cost}</td>
+                  <td className="px-3 py-2 text-right">{row.purchased_quantity}</td>
+                  <td className="px-3 py-2 text-right">{row.sold_quantity}</td>
+                  <td className="px-3 py-2 text-right font-bold">{row.current_stock}</td>
+                  <td className="px-3 py-2 text-right">{row.unit_sale_price}</td>
+                  <td className="px-3 py-2 text-right">{row.unit_discount}</td>
+                  <td className="px-3 py-2 text-right">{row.discounts_gifts}</td>
+                  <td className="px-3 py-2 text-right font-bold">{row.net_sale_price?.toLocaleString()}</td>
+                  <td className="px-3 py-2 text-right font-bold">{row.total_sales?.toLocaleString()}</td>
+                  <td className="px-3 py-2 text-right font-bold">{row.unit_gain?.toLocaleString()}</td>
+                  <td className="px-3 py-2 text-right font-bold">{row.total_gain?.toLocaleString()}</td>
+                  <td className="px-3 py-2 text-right font-bold">{row.real_total_gain?.toLocaleString()}</td>
+                  <td className="px-3 py-2 text-right font-bold">{row.real_total_sales?.toLocaleString()}</td>
+                  <td className="px-3 py-2 text-right font-bold">{((row.margin || 0) * 100).toFixed(2)}%</td>
+                  <td className="px-3 py-2 text-center">{row.purchase_date}</td>
+                  <td className="px-3 py-2 text-left">{row.notes}</td>
+                  <td className="px-3 py-2 text-right">{row.total_purchased}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {/* Controles de paginación */}
+          <div className="flex justify-center items-center gap-2 mt-6">
+            <button
+              className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
+            >Anterior</button>
+            <span className="font-semibold text-sm">Página {page} de {totalPages}</span>
+            <button
+              className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+              onClick={() => setPage(page + 1)}
+              disabled={page === totalPages}
+            >Siguiente</button>
+          </div>
+        </div>
+        <StockAddImportModal open={modalOpen} onClose={() => setModalOpen(false)} onCreated={handleModalCreated} />
       </div>
-      <StockAddImportModal open={modalOpen} onClose={() => setModalOpen(false)} onCreated={handleModalCreated} />
-    </div>
+      <Toaster />
+    </>
   );
 }

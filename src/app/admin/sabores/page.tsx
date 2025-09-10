@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/utils/supabaseClientBrowser";
-import { toast } from "@/components/ui/sonner-toast";
+import { toast, Toaster } from "sonner";
 
 import FlavorQuickCreateModal from "@/components/dashboard/FlavorQuickCreateModal";
 import { Button } from "@/components/ui/button";
@@ -111,7 +111,8 @@ export default function AdminSabores() {
   }
 
   return (
-  <div>
+    <>
+    <div>
     <h1 className="text-2xl font-bold mb-4 text-left">Gestión de Sabores</h1>
     <div className="flex justify-end items-center gap-2 mb-4">
       <Button className="bg-black hover:bg-gray-900 text-white" onClick={() => setModalOpen(true)}>
@@ -227,5 +228,7 @@ export default function AdminSabores() {
         </div>
       )}
     </div>
+    <Toaster />
+    </>
   );
 }
