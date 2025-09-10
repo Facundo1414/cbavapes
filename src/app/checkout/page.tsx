@@ -1,4 +1,4 @@
-  'use client'
+'use client'
 
   import { useCart } from '@/context/CartContext'
   import { getOrCreateClient, crearPedidoYItems, generarMensajeWhatsapp } from '@/app/utils/orderUtils'
@@ -8,6 +8,7 @@
   import { toast, Toaster } from 'sonner'
   import { Separator } from '@/components/ui/separator';
   import PageHeader from '@/components/PageHeader';
+  import ModalConfirmationCheckoutPage from '@/components/ModalConfirmationCheckoutPage';
 
 
   export default function CheckoutPage() {
@@ -29,6 +30,7 @@
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
   const [isLoadingPedido, setIsLoadingPedido] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const total = useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart]);
 
   useEffect(() => {
@@ -58,61 +60,46 @@
       toast.error('Completa todos los datos obligatorios antes de confirmar.');
       return;
     }
-    setConfirmando(true);
-    toast(
-      '¿Confirmar pedido y continuar a WhatsApp?',
-      {
-        action: {
-          label: 'Confirmar',
-          onClick: async () => {
-            toast.loading('Generando pedido...');
-            setIsLoadingPedido(true);
-            try {
-              await crearPedidoYItems({
-                nombre,
-                telefono,
-                cart,
-                total,
-                cupon,
-                descuentoAplicado,
-                aclaraciones,
-                clearCart,
-                router,
-              });
-              const mensaje = generarMensajeWhatsapp({
-                cart,
-                formaEntrega,
-                retiroLugar,
-                direccion,
-                barrio,
-                total,
-                nombre,
-                telefono,
-                formaPago,
-              });
-              const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(mensaje)}`;
-              router.push(`/whatsapp?msg=${encodeURIComponent(mensaje)}`);
-              window.open(url, '_blank');
-            } catch (err) {
-              console.error(err);
-            } finally {
-              setIsLoadingPedido(false);
-              setConfirmando(false);
-              router.push('/');
-            }
-          },
-        },
-        cancel: {
-          label: 'Cancelar',
-          onClick: () => setConfirmando(false),
-        },
-        onAutoClose: () => setConfirmando(false),
-      }
-    );
+    setIsModalOpen(true);
   }
+
+  const handleConfirm = async () => {
+    setIsModalOpen(false);
+    toast.loading('Generando pedido...');
+    setIsLoadingPedido(true);
+    try {
+      await crearPedidoYItems({
+        nombre,
+        telefono,
+        cart,
+        total,
+        cupon,
+        descuentoAplicado,
+        aclaraciones,
+        clearCart,
+        router,
+      });
+      const mensaje = generarMensajeWhatsapp({
+        cart,
+        formaEntrega,
+        retiroLugar,
+        direccion,
+        barrio,
+        total,
+        nombre,
+        telefono,
+        formaPago,
+      });
+      const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(mensaje)}`;
+      window.open(url, '_blank');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingPedido(false);
+      router.push('/');
+    }
+  };
   
-
-
     return (
       <>
   <div className="min-h-screen max-w-5xl mx-auto pt-5 px-4 sm:px-6 lg:px-8 bg-white-100">
@@ -121,7 +108,7 @@
             <h2 className="text-2xl font-bold mb-6 text-neutral-900 text-center">Resumen del carrito</h2>
             <ul className="divide-y border rounded p-4 max-h-60 overflow-y-auto bg-white">
               {cart.map(item => (
-                <li key={item.id} className="py-2 flex items-center justify-between gap-2">
+                <li key={`${item.id}-${item.flavor_id || 'default'}`} className="py-2 flex items-center justify-between gap-2">
                   <img src={item.image || '/images/placeholder.png'} alt={item.name} className="w-10 h-10 object-cover rounded mr-2 border" />
                   <span className="font-medium text-gray-800 flex-1">{item.name} x{item.quantity}</span>
                   <span className="text-gray-700">${(item.price * item.quantity).toLocaleString('es-ES', { minimumFractionDigits: 0 })}</span>
@@ -341,6 +328,11 @@
           </main>
         </div>
           <Toaster position="bottom-right" />
+          <ModalConfirmationCheckoutPage
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirm}
+      />
       </>
     );
   }

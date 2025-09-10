@@ -25,19 +25,40 @@ export async function getOrCreateClient(
   nombre: string,
   telefono: string
 ): Promise<number> {
-  const { data }: { data: Client | null } = await supabaseBrowser
-    .from("clients")
-    .select("id")
-    .eq("name", nombre)
-    .eq("phone", telefono)
-    .single();
-  if (data && data.id) return data.id;
-  const { data: newClient }: { data: Client | null } = await supabaseBrowser
+  const { data, error }: { data: { id: number }[] | null; error: any } =
+    await supabaseBrowser
+      .from("clients")
+      .select("id")
+      .eq("name", nombre)
+      .eq("phone", telefono);
+
+  if (error) {
+    throw new Error("Error al buscar el cliente: " + error.message);
+  }
+
+  if (data && data.length === 1) {
+    return data[0].id;
+  } else if (data && data.length > 1) {
+    throw new Error("Se encontraron múltiples clientes con los mismos datos.");
+  }
+
+  const {
+    data: newClient,
+    error: insertError,
+  }: { data: { id: number } | null; error: any } = await supabaseBrowser
     .from("clients")
     .insert([{ name: nombre, phone: telefono }])
     .select("id")
     .single();
-  if (newClient && newClient.id) return newClient.id;
+
+  if (insertError) {
+    throw new Error("Error al crear el cliente: " + insertError.message);
+  }
+
+  if (newClient && newClient.id) {
+    return newClient.id;
+  }
+
   throw new Error("No se pudo crear el cliente");
 }
 

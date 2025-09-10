@@ -1,5 +1,3 @@
-
-
 "use client";
 import React, { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/utils/supabaseClientBrowser";
@@ -68,50 +66,56 @@ export function OrdersTable() {
 
   // Cambiar estado pagado/entregado
   async function togglePaid(orderId: number, current: boolean) {
-  await supabaseBrowser.from("orders").update({ paid: !current }).eq("id", orderId);
-  // Actualizar stock al marcar/desmarcar pagado
-  const { data: items, error } = await supabaseBrowser.from("order_items").select("flavor_id, quantity").eq("order_id", orderId);
-  if (!error && items) {
-    for (const item of items) {
-      // Obtener stock actual
-      const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock").eq("id", item.flavor_id).single();
-      if (!flavorError && flavorData) {
-        let newStock;
-        if (!current) {
-          // Se marca como pagado: restar
-          newStock = (flavorData.stock || 0) - (item.quantity || 0);
-        } else {
-          // Se desmarca: sumar
-          newStock = (flavorData.stock || 0) + (item.quantity || 0);
+    await supabaseBrowser.from("orders").update({ paid: !current }).eq("id", orderId);
+    // Actualizar stock y cantidad vendida al marcar/desmarcar pagado
+    const { data: items, error } = await supabaseBrowser.from("order_items").select("flavor_id, quantity").eq("order_id", orderId);
+    if (!error && items) {
+      for (const item of items) {
+        // Obtener stock y cantidad vendida actual
+        const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock, sold_quantity").eq("id", item.flavor_id).single();
+        if (!flavorError && flavorData) {
+          let newStock;
+          let newSoldQuantity;
+          if (!current) {
+            // Se marca como pagado: restar stock, aumentar cantidad vendida
+            newStock = (flavorData.stock || 0) - (item.quantity || 0);
+            newSoldQuantity = (flavorData.sold_quantity || 0) + (item.quantity || 0);
+          } else {
+            // Se desmarca: sumar stock, restar cantidad vendida
+            newStock = (flavorData.stock || 0) + (item.quantity || 0);
+            newSoldQuantity = (flavorData.sold_quantity || 0) - (item.quantity || 0);
+          }
+          await supabaseBrowser.from("flavors").update({ stock: newStock, sold_quantity: newSoldQuantity }).eq("id", item.flavor_id);
         }
-        await supabaseBrowser.from("flavors").update({ stock: newStock }).eq("id", item.flavor_id);
       }
     }
-  }
-  await fetchAll();
+    await fetchAll();
   }
   async function toggleDelivered(orderId: number, current: boolean) {
-  await supabaseBrowser.from("orders").update({ delivered: !current }).eq("id", orderId);
-  // Si se marca como entregado, restar stock. Si se desmarca, restaurar stock.
-  const { data: items, error } = await supabaseBrowser.from("order_items").select("flavor_id, quantity").eq("order_id", orderId);
-  if (!error && items) {
-    for (const item of items) {
-      // Obtener stock actual
-      const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock").eq("id", item.flavor_id).single();
-      if (!flavorError && flavorData) {
-        let newStock;
-        if (!current) {
-          // Se marca como entregado: restar
-          newStock = (flavorData.stock || 0) - (item.quantity || 0);
-        } else {
-          // Se desmarca: sumar
-          newStock = (flavorData.stock || 0) + (item.quantity || 0);
+    await supabaseBrowser.from("orders").update({ delivered: !current }).eq("id", orderId);
+    // Actualizar stock y cantidad vendida al marcar/desmarcar entregado
+    const { data: items, error } = await supabaseBrowser.from("order_items").select("flavor_id, quantity").eq("order_id", orderId);
+    if (!error && items) {
+      for (const item of items) {
+        // Obtener stock y cantidad vendida actual
+        const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock, sold_quantity").eq("id", item.flavor_id).single();
+        if (!flavorError && flavorData) {
+          let newStock;
+          let newSoldQuantity;
+          if (!current) {
+            // Se marca como entregado: restar stock, aumentar cantidad vendida
+            newStock = (flavorData.stock || 0) - (item.quantity || 0);
+            newSoldQuantity = (flavorData.sold_quantity || 0) + (item.quantity || 0);
+          } else {
+            // Se desmarca: sumar stock, restar cantidad vendida
+            newStock = (flavorData.stock || 0) + (item.quantity || 0);
+            newSoldQuantity = (flavorData.sold_quantity || 0) - (item.quantity || 0);
+          }
+          await supabaseBrowser.from("flavors").update({ stock: newStock, sold_quantity: newSoldQuantity }).eq("id", item.flavor_id);
         }
-        await supabaseBrowser.from("flavors").update({ stock: newStock }).eq("id", item.flavor_id);
       }
     }
-  }
-  await fetchAll();
+    await fetchAll();
   }
   const pageSize = 15;
 
