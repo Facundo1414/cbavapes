@@ -13,8 +13,41 @@ import OrdersTableFilters from "./OrdersTableFilters";
 import OrdersTablePagination from "./OrdersTablePagination";
 import OrdersTableList from "./OrdersTableList";
 
-  // Estado para los items del pedido
-  type OrderItemDraft = {
+interface NewClient {
+  name: string;
+  phone?: string;
+  notes?: string;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  brand?: string;
+  flavors: {
+    id: number;
+    flavor: string;
+    price: number;
+    stock: number;
+  }[];
+}
+
+interface Flavor {
+  id: number;
+  flavor: string;
+  price: number;
+  stock: number;
+}
+
+interface OrderItemDraft {
+  product: Product;
+  flavor: Flavor;
+  quantity: number;
+  price: number;
+  discount: number;
+}
+
+// Estado para los items del pedido
+type OrderItemDraft2 = {
     product_id: number;
     product_name: string;
     brand: string;
@@ -58,7 +91,7 @@ export function OrdersTable() {
   // Estado para el modal
   const [modalOpen, setModalOpen] = useState(false);
 
-  const [orderItems, setOrderItems] = useState<OrderItemDraft[]>([]);
+  const [orderItems, setOrderItems] = useState<OrderItemDraft2[]>([]);
   // Estado para el item en edición
   const [selectedProductId, setSelectedProductId] = useState<number|null>(null);
   const [selectedFlavorId, setSelectedFlavorId] = useState<number|null>(null);
@@ -73,7 +106,7 @@ export function OrdersTable() {
     if (!error && items) {
       for (const item of items) {
         // Obtener stock y cantidad vendida actual
-        const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock, quantity_sold").eq("id", item.flavor_id).single();
+        const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock, quantity_sold, price").eq("id", item.flavor_id).single();
         if (!flavorError && flavorData) {
           let newStock;
           let newSoldQuantity;
@@ -94,6 +127,7 @@ export function OrdersTable() {
         }
       }
     }
+    await updateOrderStatus(orderId);
     await fetchAll();
   }
   async function toggleDelivered(orderId: number, current: boolean) {
@@ -103,7 +137,7 @@ export function OrdersTable() {
     if (!error && items) {
       for (const item of items) {
         // Obtener stock y cantidad vendida actual
-        const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock, quantity_sold").eq("id", item.flavor_id).single();
+        const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock, quantity_sold, price").eq("id", item.flavor_id).single();
         if (!flavorError && flavorData) {
           let newStock;
           let newSoldQuantity;
@@ -124,6 +158,7 @@ export function OrdersTable() {
         }
       }
     }
+    await updateOrderStatus(orderId);
     await fetchAll();
   }
   const pageSize = 15;
@@ -171,6 +206,96 @@ export function OrdersTable() {
     }
     setLoading(false);
   };
+
+  // Actualizar el estado a "Completado" si ambos campos están en true
+  async function updateOrderStatus(orderId: number) {
+    const { data, error } = await supabaseBrowser
+      .from("orders")
+      .select("paid, delivered")
+      .eq("id", orderId)
+      .single();
+
+    if (!error && data) {
+      if (data.paid && data.delivered) {
+        await supabaseBrowser.from("orders").update({ status: "Completado" }).eq("id", orderId);
+      }
+    }
+  }
+
+  // Crear pedido
+  async function createOrder({
+    clientId,
+    newClient,
+    items,
+    notes,
+    date,
+    paid,
+    delivered,
+  }: {
+    clientId: number | null;
+    newClient: NewClient;
+    items: OrderItemDraft[];
+    notes: string;
+    date: string;
+    paid: boolean;
+    delivered: boolean;
+  }) {
+    let finalClientId = clientId;
+
+    if (!finalClientId && newClient.name) {
+      const { data, error } = await supabaseBrowser.from("clients").insert([newClient]).select();
+      if (error || !data || !data[0]) {
+        throw new Error("Error creando cliente");
+      }
+      finalClientId = data[0].id;
+    }
+
+    const discountFinal = items.reduce((acc: number, item: OrderItemDraft) => acc + (item.discount || 0), 0);
+    const totalFinal = items.reduce((acc: number, item: OrderItemDraft) => acc + (item.price * item.quantity - (item.discount || 0)), 0);
+
+    const { data: orderData, error: orderError } = await supabaseBrowser.from("orders").insert([
+      {
+        client_id: finalClientId,
+        total: totalFinal,
+        discount: discountFinal,
+        notes,
+        created_at: date || new Date().toISOString().slice(0, 10),
+        paid,
+        delivered,
+        status: "nuevo",
+      },
+    ]).select();
+
+    if (orderError || !orderData || !orderData[0]) {
+      throw new Error("Error creando pedido");
+    }
+
+    const orderId = orderData[0].id;
+    const itemsToInsert = items.map((item: OrderItemDraft) => ({
+      order_id: orderId,
+      product_id: item.product.id,
+      product_name: item.product.name,
+      flavor_id: item.flavor.id,
+      flavor: item.flavor.flavor,
+      price: item.price,
+      quantity: item.quantity,
+    }));
+
+    const { error: itemError } = await supabaseBrowser.from("order_items").insert(itemsToInsert);
+    if (itemError) {
+      throw new Error("Error creando items del pedido");
+    }
+
+    if (delivered) {
+      for (const item of items) {
+        const { data: flavorData, error: flavorError } = await supabaseBrowser.from("flavors").select("stock").eq("id", item.flavor.id).single();
+        if (!flavorError && flavorData) {
+          const newStock = (flavorData.stock || 0) - item.quantity;
+          await supabaseBrowser.from("flavors").update({ stock: newStock }).eq("id", item.flavor.id);
+        }
+      }
+    }
+  }
 
   useEffect(() => {
     fetchAll();

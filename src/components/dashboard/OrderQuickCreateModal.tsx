@@ -21,6 +21,7 @@ interface Product {
 interface Flavor {
   id: number;
   flavor: string;
+  price: number;
   stock: number;
 }
 
@@ -69,7 +70,7 @@ export default function OrderQuickCreateModal({ open, onClose, onCreated }: Prop
     setClients(data || []);
   }
   async function fetchProducts() {
-    const { data } = await supabaseBrowser.from("products").select("id, name, price, flavors(id, flavor, stock)");
+    const { data } = await supabaseBrowser.from("products").select("id, name, price, flavors(id, flavor, stock, price)");
     setProducts(data || []);
   }
 

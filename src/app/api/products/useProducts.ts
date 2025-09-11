@@ -5,6 +5,7 @@ export type Flavor = {
   product_id: number;
   flavor: string;
   stock: number;
+  price: number; // Agregar la propiedad price
 };
 
 export type ProductFull = {
