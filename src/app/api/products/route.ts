@@ -1,32 +1,13 @@
-// Mapeo simple de brand o name a categoría
-const CATEGORY_MAP: Record<string, string> = {
-  RABBEATS: "vapes",
-  SMOK: "vapes",
-  ELFBAR: "vapes",
-  "SEX ADDICT": "vapes",
-  IGNITE: "vapes",
-  "LOST MARY": "vapes",
-  LUFBAR: "vapes",
-  NIKBAR: "vapes",
-  WAKA: "vapes",
-  "TORCH THC": "thc-vapes",
-  // Agrega más mapeos según tus marcas/nombres
-};
+// Eliminar el mapeo hardcodeado y usar las categorías directamente desde los datos de Product
 
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 
 interface Flavor {
   id: number;
-  product_id: number;
   flavor: string;
   stock: number;
-  purchased_quantity: number;
-  quantity_sold: number;
-  discounts_gifts: number;
   price: number;
-  total_sales: number;
-  actual_total_sales: number;
 }
 
 interface Product {
@@ -42,24 +23,45 @@ interface Product {
   category?: string; // calculado en runtime
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // Traer productos y sus sabores relacionados
-    const { data: products, error } = await supabase
-      .from("products")
-      .select("*, flavors(*)");
+    const url = new URL(request.url);
+    const category = url.searchParams.get("category");
+
+    // Traer productos y sus sabores relacionados con campos filtrados
+    const { data: products, error } = await supabase.from("products").select(`
+        id,
+        brand,
+        name,
+        image1,
+        image2,
+        image3,
+        price,
+        category_key,
+        flavors (
+          id,
+          flavor,
+          stock,
+          price
+        )
+      `);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Agregar campo category a cada producto según brand o name
+    // Usar directamente la categoría desde los datos de Product
     const productsWithCategory = (products ?? []).map((p: Product) => ({
       ...p,
-      category: CATEGORY_MAP[p.brand] || CATEGORY_MAP[p.name] || "otros",
+      category: p.category_key || "otros",
     }));
 
-    return NextResponse.json({ products: productsWithCategory });
+    // Filtrar productos por categoría si se proporciona
+    const filteredProducts = category
+      ? productsWithCategory.filter((p) => p.category === category)
+      : productsWithCategory;
+
+    return NextResponse.json({ products: filteredProducts });
   } catch (error) {
     console.error("API fetch error:", error);
     return NextResponse.json(

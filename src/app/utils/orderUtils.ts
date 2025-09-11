@@ -26,41 +26,41 @@ export async function getOrCreateClient(
   nombre: string,
   telefono: string
 ): Promise<number> {
-  const { data, error }: { data: { id: number }[] | null; error: PostgrestError | null } =
-    await supabaseBrowser
-      .from("clients")
-      .select("id")
-      .eq("name", nombre)
-      .eq("phone", telefono);
-
-  if (error) {
-    throw new Error("Error al buscar el cliente: " + error.message);
-  }
-
-  if (data && data.length === 1) {
-    return data[0].id;
-  } else if (data && data.length > 1) {
-    throw new Error("Se encontraron múltiples clientes con los mismos datos.");
-  }
-
   const {
     data: newClient,
     error: insertError,
-  }: { data: { id: number } | null; error: PostgrestError | null } = await supabaseBrowser
-    .from("clients")
-    .insert([{ name: nombre, phone: telefono }])
-    .select("id")
-    .single();
+  }: { data: { id: number } | null; error: PostgrestError | null } =
+    await supabaseBrowser
+      .from("clients")
+      .insert([{ name: nombre, phone: telefono }])
+      .select("id")
+      .single();
+
+  if (insertError && insertError.message.includes("duplicate key")) {
+    // Manejar el caso en el que el cliente ya existe
+    const { data, error } = await supabaseBrowser
+      .from("clients")
+      .select("id")
+      .eq("name", nombre)
+      .eq("phone", telefono)
+      .single();
+
+    if (error) {
+      throw new Error("Error al buscar el cliente: " + error.message);
+    }
+
+    return data.id;
+  }
 
   if (insertError) {
     throw new Error("Error al crear el cliente: " + insertError.message);
   }
 
-  if (newClient && newClient.id) {
-    return newClient.id;
+  if (!newClient || !newClient.id) {
+    throw new Error("No se pudo crear el cliente");
   }
 
-  throw new Error("No se pudo crear el cliente");
+  return newClient.id;
 }
 
 export async function crearPedidoYItems({

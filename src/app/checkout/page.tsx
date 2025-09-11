@@ -1,7 +1,7 @@
 'use client'
 
   import { useCart } from '@/context/CartContext'
-  import { getOrCreateClient, crearPedidoYItems, generarMensajeWhatsapp } from '@/app/utils/orderUtils'
+  import { generarMensajeWhatsapp } from '@/app/utils/orderUtils'
   import { useEffect, useMemo, useState } from 'react'
   import { useRouter } from 'next/navigation'
   import { Button } from '@/components/ui/button'
@@ -68,17 +68,26 @@
     toast.loading('Generando pedido...');
     setIsLoadingPedido(true);
     try {
-      await crearPedidoYItems({
-        nombre,
-        telefono,
-        cart,
-        total,
-        cupon,
-        descuentoAplicado,
-        aclaraciones,
-        clearCart,
-        router,
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nombre,
+          telefono,
+          cart,
+          total,
+          cupon,
+          descuentoAplicado,
+          aclaraciones,
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error('Error al crear el pedido');
+      }
+
       const mensaje = generarMensajeWhatsapp({
         cart,
         formaEntrega,
@@ -92,11 +101,14 @@
       });
       const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(mensaje)}`;
       window.open(url, '_blank');
+
+      clearCart();
+      router.push('/');
     } catch (err) {
       console.error(err);
+      toast.error('Hubo un error al generar el pedido.');
     } finally {
       setIsLoadingPedido(false);
-      router.push('/');
     }
   };
   

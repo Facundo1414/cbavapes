@@ -5,12 +5,6 @@ export type Flavor = {
   product_id: number;
   flavor: string;
   stock: number;
-  purchased_quantity: number;
-  quantity_sold: number;
-  discounts_gifts: number;
-  price: number;
-  total_sales: number;
-  actual_total_sales: number;
 };
 
 export type ProductFull = {

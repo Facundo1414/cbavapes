@@ -29,7 +29,7 @@ export default function CategoryPage({ params }: PageProps) {
       const { category } = await params;
 
       // Obtener productos y categoría
-      const fetchedProducts: ProductFull[] = await fetchProductsServer();
+      const fetchedProducts: ProductFull[] = await fetchProductsServer(category);
       const supabase = supabaseServer();
       const { data: fetchedCategoryData, error } = await supabase
         .from('categories')
