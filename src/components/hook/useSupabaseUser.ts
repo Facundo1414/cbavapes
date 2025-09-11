@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/utils/supabaseClientBrowser";
-import type { User } from "@supabase/supabase-js";
+import { User } from "@supabase/supabase-js";
 
 export function useSupabaseUser() {
   const [user, setUser] = useState<User | null>(null);
+  const [userMetadata, setUserMetadata] = useState<{
+    full_name?: string;
+    phone?: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -13,6 +17,7 @@ export function useSupabaseUser() {
       const { data } = await supabaseBrowser.auth.getUser();
       if (!ignore) {
         setUser(data?.user || null);
+        setUserMetadata(data?.user?.user_metadata || null);
         setLoading(false);
       }
     }
@@ -20,6 +25,7 @@ export function useSupabaseUser() {
     const { data: listener } = supabaseBrowser.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user || null);
+        setUserMetadata(session?.user?.user_metadata || null);
       }
     );
     return () => {
@@ -28,5 +34,5 @@ export function useSupabaseUser() {
     };
   }, []);
 
-  return { user, loading };
+  return { user, userMetadata, loading };
 }

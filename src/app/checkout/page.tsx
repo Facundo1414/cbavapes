@@ -1,7 +1,7 @@
 'use client'
 
   import { useCart } from '@/context/CartContext'
-  import { generarMensajeWhatsapp } from '@/app/utils/orderUtils'
+  import { generarMensajeWhatsapp, getOrCreateClient, crearPedidoYItems } from '@/app/utils/orderUtils'
   import { useEffect, useMemo, useState } from 'react'
   import { useRouter } from 'next/navigation'
   import { Button } from '@/components/ui/button'
@@ -9,7 +9,7 @@
   import { Separator } from '@/components/ui/separator';
   import PageHeader from '@/components/PageHeader';
   import ModalConfirmationCheckoutPage from '@/components/ModalConfirmationCheckoutPage';
-
+  import { useSupabaseUser } from '@/components/hook/useSupabaseUser';
 
   export default function CheckoutPage() {
   // Confirmación antes de enviar por WhatsApp
@@ -32,25 +32,36 @@
   const [isLoadingPedido, setIsLoadingPedido] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const total = useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart]);
+  const user = useSupabaseUser();
+  const { userMetadata } = user || {};
 
   useEffect(() => {
     if (cart.length === 0) router.push('/');
   }, [cart, router]);
 
-   // Autocompletar dirección y barrio desde localStorage
+  // Ajustar para usar userMetadata del hook actualizado
+  useEffect(() => {
+    if (userMetadata) {
+      // Priorizar datos del usuario autenticado
+      setNombre(userMetadata.full_name || '');
+      setTelefono(userMetadata.phone || '');
+    } else {
+      // Usar datos de localStorage como respaldo
+      const savedNombre = localStorage.getItem('checkout_nombre');
+      const savedTelefono = localStorage.getItem('checkout_telefono');
+      if (savedNombre) setNombre(savedNombre);
+      if (savedTelefono) setTelefono(savedTelefono);
+    }
+  }, [userMetadata]);
+
+  // Autocompletar dirección y barrio desde localStorage
   useEffect(() => {
     const savedDireccion = localStorage.getItem('checkout_direccion');
     const savedBarrio = localStorage.getItem('checkout_barrio');
     if (savedDireccion) setDireccion(savedDireccion);
     if (savedBarrio) setBarrio(savedBarrio);
   }, []);
-  // Autocompletar datos del cliente desde localStorage
-  useEffect(() => {
-    const savedNombre = localStorage.getItem('checkout_nombre');
-    const savedTelefono = localStorage.getItem('checkout_telefono');
-    if (savedNombre) setNombre(savedNombre);
-    if (savedTelefono) setTelefono(savedTelefono);
-  }, []); 
+
 
 
   
@@ -68,26 +79,17 @@
     toast.loading('Generando pedido...');
     setIsLoadingPedido(true);
     try {
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nombre,
-          telefono,
-          cart,
-          total,
-          cupon,
-          descuentoAplicado,
-          aclaraciones,
-        }),
+      await crearPedidoYItems({
+        nombre,
+        telefono,
+        cart,
+        total,
+        cupon,
+        descuentoAplicado,
+        aclaraciones,
+        clearCart,
+        router,
       });
-
-      if (!response.ok) {
-        throw new Error('Error al crear el pedido');
-      }
-
       const mensaje = generarMensajeWhatsapp({
         cart,
         formaEntrega,
@@ -101,14 +103,11 @@
       });
       const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(mensaje)}`;
       window.open(url, '_blank');
-
-      clearCart();
-      router.push('/');
     } catch (err) {
       console.error(err);
-      toast.error('Hubo un error al generar el pedido.');
     } finally {
       setIsLoadingPedido(false);
+      router.push('/');
     }
   };
   

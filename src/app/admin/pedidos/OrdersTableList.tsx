@@ -75,7 +75,7 @@ export default function OrdersTableList({ paginatedOrders, clients, expanded, se
                     title={order.delivered ? 'Entregado' : 'No entregado'}
                   />
                 </td>
-                <td className="p-2">{order.created_at.slice(0, 10).split('-').reverse().join('/')}</td>
+                <td className="p-2">{order.created_at ? order.created_at.slice(0, 10).split('-').reverse().join('/') : '-'}</td>
                 <td className="p-2">{order.coupon ? String(order.coupon) : '-'}</td>
                 <td className="p-2">{order.notes ? order.notes : '-'}</td>
                 <td className="p-2">{order.followup_done ? 'Sí' : 'No'}</td>
