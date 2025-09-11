@@ -10,6 +10,7 @@
   import PageHeader from '@/components/PageHeader';
   import ModalConfirmationCheckoutPage from '@/components/ModalConfirmationCheckoutPage';
   import { useSupabaseUser } from '@/components/hook/useSupabaseUser';
+  import { useSessionContext } from '@supabase/auth-helpers-react';
 
   export default function CheckoutPage() {
   // Confirmación antes de enviar por WhatsApp
@@ -34,6 +35,7 @@
   const total = useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart]);
   const user = useSupabaseUser();
   const { userMetadata } = user || {};
+  const { session, supabaseClient } = useSessionContext();
 
   useEffect(() => {
     if (cart.length === 0) router.push('/');
@@ -62,8 +64,26 @@
     if (savedBarrio) setBarrio(savedBarrio);
   }, []);
 
+  useEffect(() => {
+    async function fetchUserProfile() {
+      if (!session?.user) return; // Verificar si el usuario está autenticado
 
+      const { data, error } = await supabaseClient
+        .from('user_profile')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
 
+      if (!error && data) {
+        setNombre(data.name || '');
+        setTelefono(data.phone || '');
+        setDireccion(data.address || '');
+        setBarrio(data.neighborhood || '');
+      }
+    }
+
+    fetchUserProfile();
+  }, [session, supabaseClient]);
   
   async function enviarPorWhatsapp() {
     // Validaciones antes de confirmar
