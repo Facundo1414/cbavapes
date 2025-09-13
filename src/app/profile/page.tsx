@@ -129,6 +129,7 @@ export default function ProfilePage() {
   const comprasPageCount = Math.ceil(compras.length / comprasPerPage);
   const comprasToShow = compras.slice((comprasPage - 1) * comprasPerPage, comprasPage * comprasPerPage);
   
+  const MIN_COMMENT_LENGTH = 10; // Minimum characters for a comment
 
 
   const handleLogout = async () => {
@@ -186,6 +187,10 @@ export default function ProfilePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, supabaseClient, tab]);
+
+  const averageRating = valoracionesReal.length > 0
+  ? valoracionesReal.reduce((sum, v) => sum + v.rating, 0) / valoracionesReal.length
+  : null;
 
   if (loading) return <div className="p-8">Cargando perfil...</div>;
   if (!profile) return <div className="p-8">No se encontró el perfil.</div>;
@@ -255,7 +260,11 @@ export default function ProfilePage() {
           <section>
             <div className="overflow-x-auto">
               {comprasLoading ? (
-                <div className="text-center text-gray-500 py-8">Cargando compras...</div>
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-300 rounded"></div>
+                </div>
               ) : (
                 <table className="min-w-full text-sm">
                   <thead>
@@ -281,7 +290,12 @@ export default function ProfilePage() {
                           <td className="py-2 px-2">{item.quantity}</td>
                           <td className="py-2 px-2">
                             {yaValorado ? (
-                              <span className="text-green-600 font-semibold">Valorado</span>
+                              <span className="text-green-600 font-semibold flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                                Valorado
+                              </span>
                             ) : (
                               <Button size="sm" onClick={() => {
                                 setSelectedSabor({
@@ -336,6 +350,9 @@ export default function ProfilePage() {
                     onChange={e => setRatingComment(e.target.value)}
                     placeholder="¿Qué te pareció este sabor?"
                   />
+                  {ratingComment.length > 0 && ratingComment.length < MIN_COMMENT_LENGTH && (
+                    <p className="text-red-500 text-sm">El comentario debe tener al menos {MIN_COMMENT_LENGTH} caracteres.</p>
+                  )}
                 </div>
                 <DialogFooter>
                   <Button
@@ -384,6 +401,13 @@ export default function ProfilePage() {
         )}
         {tab === 'valoraciones' && (
           <section>
+            {averageRating !== null && (
+      <div className="mb-4 text-center">
+        <span className="text-lg font-semibold">Calificación promedio: </span>
+        <span className="text-yellow-500">{'★'.repeat(Math.round(averageRating))}{'☆'.repeat(5 - Math.round(averageRating))}</span>
+        <span className="text-sm text-gray-500 ml-2">({averageRating.toFixed(1)})</span>
+      </div>
+    )}
             {valoracionesLoading ? (
               <div className="text-center text-gray-500 py-8">Cargando valoraciones...</div>
             ) : valoracionesToShow.length === 0 ? (
@@ -450,6 +474,9 @@ export default function ProfilePage() {
                         onChange={e => setEditRatingComment(e.target.value)}
                         placeholder="Edita tu comentario"
                       />
+                      {editRatingComment.length > 0 && editRatingComment.length < MIN_COMMENT_LENGTH && (
+                        <p className="text-red-500 text-sm">El comentario debe tener al menos {MIN_COMMENT_LENGTH} caracteres.</p>
+                      )}
                     </div>
                     <DialogFooter>
                       <Button onClick={() => setEditModalOpen(false)} variant="secondary">Cancelar</Button>
@@ -465,16 +492,17 @@ export default function ProfilePage() {
                           setValoracionesLoading(false);
                           setEditModalOpen(false);
                           if (error) {
-                            toast.error('Error al actualizar valoración');
+                            toast.error('Error al editar valoración');
                           } else {
-                            toast.success('Valoración actualizada');
-                            setTimeout(() => {
-                              if (tab && tab.toString() === 'valoraciones') {
-                                setTab('datos');
-                                setTimeout(() => setTab('valoraciones'), 100);
-                              }
-                            }, 300);
+                            toast.success('¡Valoración actualizada!');
                           }
+                          // Refrescar valoraciones
+                          setTimeout(() => {
+                            if (tab && tab.toString() === 'valoraciones') {
+                              setTab('datos');
+                              setTimeout(() => setTab('valoraciones'), 100);
+                            }
+                          }, 300);
                         }}
                       >{valoracionesLoading ? 'Guardando...' : 'Guardar cambios'}</Button>
                     </DialogFooter>
@@ -485,7 +513,6 @@ export default function ProfilePage() {
           </section>
         )}
       </Card>
-      <Separator className="my-8" />
     </div>
   );
 }

@@ -1,10 +1,7 @@
 "use client";
 
-
-
-
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast, Toaster } from "sonner";
 import PageHeader from "@/components/PageHeader";
@@ -13,10 +10,11 @@ import { supabase } from "@/lib/supabaseClient";
 
 
 
+
 export default function AuthPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<'login' | 'register'>('login');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   // Login state
   const [loginEmail, setLoginEmail] = useState("");
@@ -33,6 +31,11 @@ export default function AuthPage() {
   }
   const [registerAddress, setRegisterAddress] = useState("");
   const [registerNeighborhood, setRegisterNeighborhood] = useState("");
+
+  // Reset password state
+  const [resetEmail, setResetEmail] = useState("");
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isResetPassword, setIsResetPassword] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -116,36 +119,45 @@ export default function AuthPage() {
     setLoading(false);
   }
 
+  async function handlePasswordReset(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(loginEmail);
+    if (error) {
+      toast.error("Error al enviar el correo de restablecimiento: " + error.message);
+    } else {
+      toast.success("Correo de restablecimiento enviado. Revisa tu bandeja de entrada.");
+      setIsResetPassword(false);
+    }
+    setLoading(false);
+  }
 
     function isValidEmail(email: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
 
   return (
-  <div className="min-h-screen max-w-4xl mx-auto px-4 py-2">
+    <div className="min-h-screen max-w-4xl mx-auto px-4 py-2">
       <div className="w-full">
-        <PageHeader title={tab === 'login' ? 'Iniciar sesión' : 'Crear cuenta'} />
+        <PageHeader title={isResetPassword ? 'Restablecer contraseña' : (tab === 'login' ? 'Iniciar sesión' : 'Crear cuenta')} />
       </div>
-  <div className="flex-1 flex flex-col items-center justify-start pt-8 w-full">
-        <p className="text-gray-800 text-center max-w-md mb-6 text-base">
-          Registrate para acceder a tu historial de compras, recibir cupones de descuentos exclusivos, calificar productos y recibir novedades personalizadas.
-        </p>
+      <div className="flex-1 flex flex-col items-center justify-start pt-8 w-full">
         <div className="flex gap-2 mb-4">
           <button
             className={`px-4 py-2 rounded-t-lg font-semibold border-b-2 transition-colors ${tab === 'login' ? 'border-violet-600 text-violet-600 bg-white' : 'border-transparent text-gray-500 bg-gray-100'}`}
-            onClick={() => setTab('login')}
+            onClick={() => { setTab('login'); setIsResetPassword(false); }}
           >
             Iniciar sesión
           </button>
           <button
             className={`px-4 py-2 rounded-t-lg font-semibold border-b-2 transition-colors ${tab === 'register' ? 'border-violet-600 text-violet-600 bg-white' : 'border-transparent text-gray-500 bg-gray-100'}`}
-            onClick={() => setTab('register')}
+            onClick={() => { setTab('register'); setIsResetPassword(false); }}
           >
             Crear cuenta
           </button>
         </div>
-        {tab === 'login' ? (
-          <form onSubmit={handleLogin} className="bg-white rounded-lg shadow p-6 w-full max-w-xl flex flex-col gap-4 border border-gray-200">
+        {tab === 'login' && (
+          <form onSubmit={isResetPassword ? handlePasswordReset : handleLogin} className="bg-white rounded-lg shadow p-6 w-full max-w-xl flex flex-col gap-4 border border-gray-200">
             <label className="text-sm font-medium text-gray-700" htmlFor="login-email">Email</label>
             <input
               id="login-email"
@@ -156,22 +168,33 @@ export default function AuthPage() {
               onChange={e => setLoginEmail(e.target.value)}
               required
             />
-            <label className="text-sm font-medium text-gray-700" htmlFor="login-password">Contraseña</label>
-            <input
-              id="login-password"
-              type="password"
-              placeholder="Tu contraseña"
-              className="border p-2 rounded bg-gray-100 text-gray-900 placeholder-gray-500 focus:border-gray-600 focus:ring-2 focus:ring-primary/30"
-              value={loginPassword}
-              onChange={e => setLoginPassword(e.target.value)}
-              required
-            />
+            {!isResetPassword && (
+              <>
+                <label className="text-sm font-medium text-gray-700" htmlFor="login-password">Contraseña</label>
+                <input
+                  id="login-password"
+                  type="password"
+                  placeholder="Tu contraseña"
+                  className="border p-2 rounded bg-gray-100 text-gray-900 placeholder-gray-500 focus:border-gray-600 focus:ring-2 focus:ring-primary/30"
+                  value={loginPassword}
+                  onChange={e => setLoginPassword(e.target.value)}
+                  required
+                />
+              </>
+            )}
             <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Ingresando..." : "Ingresar"}
+              {loading ? (isResetPassword ? "Enviando..." : "Ingresando...") : (isResetPassword ? "Enviar correo" : "Ingresar")}
             </Button>
-            {/* Botón de login social removido */}
+            <button
+              type="button"
+              className="text-sm text-blue-600 hover:underline mt-2"
+              onClick={() => setIsResetPassword(!isResetPassword)}
+            >
+              {isResetPassword ? "Volver a iniciar sesión" : "¿Olvidaste tu contraseña?"}
+            </button>
           </form>
-        ) : (
+        )}
+        {tab === 'register' && (
           <form onSubmit={handleRegister} className="bg-white rounded-lg shadow p-4 md:p-3 w-full max-w-xl flex flex-col gap-3 border border-gray-200">
             <label className="text-sm font-medium text-gray-700" htmlFor="register-name">Nombre y apellido</label>
             <input
