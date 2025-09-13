@@ -1,11 +1,19 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
 
 const ResetPasswordPage = () => {
+  return (
+    <Suspense fallback={<p className="text-center mt-8">Cargando...</p>}>
+      <ResetPasswordContent />
+    </Suspense>
+  );
+};
+
+const ResetPasswordContent = () => {
   const searchParams = useSearchParams(); // Para obtener los parámetros de la URL
   const router = useRouter(); // Para redirigir después de restablecer la contraseña
   const [newPassword, setNewPassword] = useState('');
