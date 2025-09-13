@@ -27,6 +27,27 @@ export async function getOrCreateClient(
   telefono: string
 ): Promise<number> {
   const {
+    data: existingClients,
+    error: selectError,
+  }: { data: { id: number }[] | null; error: PostgrestError | null } =
+    await supabaseBrowser
+      .from("clients")
+      .select("id")
+      .eq("name", nombre)
+      .eq("phone", telefono)
+      .order("id", { ascending: false });
+
+  if (selectError) {
+    throw new Error(
+      "Error al buscar el cliente existente: " + selectError.message
+    );
+  }
+
+  if (existingClients && existingClients.length > 0) {
+    return existingClients[0].id; // Tomar el último cliente creado
+  }
+
+  const {
     data: newClient,
     error: insertError,
   }: { data: { id: number } | null; error: PostgrestError | null } =
@@ -35,22 +56,6 @@ export async function getOrCreateClient(
       .insert([{ name: nombre, phone: telefono }])
       .select("id")
       .single();
-
-  if (insertError && insertError.message.includes("duplicate key")) {
-    // Manejar el caso en el que el cliente ya existe
-    const { data, error } = await supabaseBrowser
-      .from("clients")
-      .select("id")
-      .eq("name", nombre)
-      .eq("phone", telefono)
-      .single();
-
-    if (error) {
-      throw new Error("Error al buscar el cliente: " + error.message);
-    }
-
-    return data.id;
-  }
 
   if (insertError) {
     throw new Error("Error al crear el cliente: " + insertError.message);
@@ -71,7 +76,7 @@ export async function crearPedidoYItems({
   aclaraciones,
   clearCart,
   router,
-  clientId
+  clientId,
 }: {
   cart: CartItem[];
   total: number;
@@ -83,24 +88,21 @@ export async function crearPedidoYItems({
   clientId: number;
 }) {
   try {
-
     // Insertar el pedido
-    const { error: pedidoError } = await supabaseBrowser
-      .from("orders")
-      .insert([
-        {
-          client_id: clientId,
-          status: "pendiente",
-          total,
-          created_at: new Date().toISOString(),
-          paid: false,
-          delivered: false,
-          coupon: cupon,
-          followup_done: false,
-          notes: aclaraciones,
-          discount: descuentoAplicado,
-        },
-      ]);
+    const { error: pedidoError } = await supabaseBrowser.from("orders").insert([
+      {
+        client_id: clientId,
+        status: "pendiente",
+        total,
+        created_at: new Date().toISOString(),
+        paid: false,
+        delivered: false,
+        coupon: cupon,
+        followup_done: false,
+        notes: aclaraciones,
+        discount: descuentoAplicado,
+      },
+    ]);
 
     if (pedidoError) {
       throw new Error("No se pudo crear el pedido: " + pedidoError.message);
@@ -116,7 +118,9 @@ export async function crearPedidoYItems({
       .single();
 
     if (selectError || !lastOrder?.id) {
-      throw new Error("No se pudo obtener el ID del pedido: " + selectError?.message);
+      throw new Error(
+        "No se pudo obtener el ID del pedido: " + selectError?.message
+      );
     }
 
     const orderId = lastOrder.id;
