@@ -11,12 +11,13 @@
   import ModalConfirmationCheckoutPage from '@/components/ModalConfirmationCheckoutPage';
   import { useSupabaseUser } from '@/components/hook/useSupabaseUser';
   import { useSessionContext } from '@supabase/auth-helpers-react';
-  import {  supabaseBrowser } from '../../utils/supabaseClientBrowser';
+  import { supabaseBrowser } from '../../utils/supabaseClientBrowser';
+
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5493513479404'; // Cargar desde .env o usar valor por defecto
 
   export default function CheckoutPage() {
   // Confirmación antes de enviar por WhatsApp
   const [confirmando, setConfirmando] = useState(false);
-  const whatsappNumber = '5493513479404'; //TODO cambiar
   // Forma de entrega y pago
   const [formaEntrega, setFormaEntrega] = useState<'retiro' | 'envio'>('retiro');
   const [retiroLugar, setRetiroLugar] = useState('Manir fatala 1593 - Barrio Smata');
