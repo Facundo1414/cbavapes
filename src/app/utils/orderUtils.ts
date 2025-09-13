@@ -64,8 +64,6 @@ export async function getOrCreateClient(
 }
 
 export async function crearPedidoYItems({
-  nombre,
-  telefono,
   cart,
   total,
   cupon,
@@ -73,9 +71,8 @@ export async function crearPedidoYItems({
   aclaraciones,
   clearCart,
   router,
+  clientId
 }: {
-  nombre: string;
-  telefono: string;
   cart: CartItem[];
   total: number;
   cupon: string;
@@ -83,31 +80,48 @@ export async function crearPedidoYItems({
   aclaraciones: string;
   clearCart: () => void;
   router: { push: (path: string) => void };
+  clientId: number;
 }) {
   try {
-    if (!nombre.trim() || !telefono.trim() || cart.length === 0) {
-      throw new Error("Completa todos los datos y agrega productos.");
-    }
-    const clientId = await getOrCreateClient(nombre, telefono);
-    const pedido = {
-      client_id: clientId,
-      status: "pendiente",
-      total,
-      created_at: new Date().toISOString(),
-      paid: false,
-      delivered: false,
-      coupon: cupon,
-      followup_done: false,
-      notes: aclaraciones,
-      discount: descuentoAplicado,
-    };
-    const { data: pedidoData } = await supabaseBrowser
+
+    // Insertar el pedido
+    const { error: pedidoError } = await supabaseBrowser
       .from("orders")
-      .insert([pedido])
+      .insert([
+        {
+          client_id: clientId,
+          status: "pendiente",
+          total,
+          created_at: new Date().toISOString(),
+          paid: false,
+          delivered: false,
+          coupon: cupon,
+          followup_done: false,
+          notes: aclaraciones,
+          discount: descuentoAplicado,
+        },
+      ]);
+
+    if (pedidoError) {
+      throw new Error("No se pudo crear el pedido: " + pedidoError.message);
+    }
+
+    // Obtener el ID del último pedido creado para el cliente
+    const { data: lastOrder, error: selectError } = await supabaseBrowser
+      .from("orders")
       .select("id")
+      .eq("client_id", clientId)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .single();
-    if (!pedidoData?.id) throw new Error("No se pudo crear el pedido");
-    const orderId = pedidoData.id;
+
+    if (selectError || !lastOrder?.id) {
+      throw new Error("No se pudo obtener el ID del pedido: " + selectError?.message);
+    }
+
+    const orderId = lastOrder.id;
+
+    // Insertar los ítems del pedido
     const items = cart.map((item) => ({
       order_id: orderId,
       product_id: item.id,
@@ -117,12 +131,18 @@ export async function crearPedidoYItems({
       flavor: item.flavor || "",
       flavor_id: item.flavor_id || null,
     }));
+
     if (items.length) {
       const { error: itemsError } = await supabaseBrowser
         .from("order_items")
         .insert(items);
-      if (itemsError) throw new Error("No se pudieron guardar los ítems");
+      if (itemsError) {
+        throw new Error(
+          "No se pudieron guardar los ítems: " + itemsError.message
+        );
+      }
     }
+
     clearCart();
     router.push("/");
     return true;

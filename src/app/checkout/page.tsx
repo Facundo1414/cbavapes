@@ -11,11 +11,12 @@
   import ModalConfirmationCheckoutPage from '@/components/ModalConfirmationCheckoutPage';
   import { useSupabaseUser } from '@/components/hook/useSupabaseUser';
   import { useSessionContext } from '@supabase/auth-helpers-react';
+  import {  supabaseBrowser } from '../../utils/supabaseClientBrowser';
 
   export default function CheckoutPage() {
   // Confirmación antes de enviar por WhatsApp
   const [confirmando, setConfirmando] = useState(false);
-  const whatsappNumber = '5493513479404';
+  const whatsappNumber = '5493513479404'; //TODO cambiar
   // Forma de entrega y pago
   const [formaEntrega, setFormaEntrega] = useState<'retiro' | 'envio'>('retiro');
   const [retiroLugar, setRetiroLugar] = useState('Manir fatala 1593 - Barrio Smata');
@@ -96,12 +97,38 @@
 
   const handleConfirm = async () => {
     setIsModalOpen(false);
-    toast.loading('Generando pedido...');
+    toast.loading("Generando pedido...");
     setIsLoadingPedido(true);
     try {
+      let clientId;
+
+      // Verificar si el usuario está autenticado
+      const { data: { user }, error: userError } = await supabaseBrowser.auth.getUser();
+      if (userError) {
+        console.warn("No se pudo obtener el usuario autenticado. Continuando como usuario anónimo.");
+      }
+
+      if (user) {
+        // Obtener el clientId del usuario autenticado
+        const { data: clientData, error: clientError } = await supabaseBrowser
+          .from("clients")
+          .select("id")
+          .eq("user_id", user.id)
+          .single();
+
+        if (clientError || !clientData) {
+          throw new Error("No se pudo obtener el cliente asociado al usuario.");
+        }
+
+        clientId = clientData.id;
+      } else {
+        // Crear o obtener el cliente para usuarios anónimos
+        clientId = await getOrCreateClient(nombre, telefono);
+      }
+
+      // Crear el pedido y los ítems
       await crearPedidoYItems({
-        nombre,
-        telefono,
+        clientId, // Pasar el clientId aquí
         cart,
         total,
         cupon,
@@ -110,6 +137,8 @@
         clearCart,
         router,
       });
+
+      // Generar el mensaje de WhatsApp
       const mensaje = generarMensajeWhatsapp({
         cart,
         formaEntrega,
@@ -121,10 +150,15 @@
         telefono,
         formaPago,
       });
+      clearCart();
       const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(mensaje)}`;
       window.open(url, '_blank');
-    } catch (err) {
-      console.error(err);
+      toast.dismiss();
+      toast.success("Pedido generado con éxito.");
+    } catch (error) {
+      console.error(error);
+      toast.dismiss();
+      toast.error("Hubo un error al generar el pedido. Intenta nuevamente.");
     } finally {
       setIsLoadingPedido(false);
       router.push('/');
