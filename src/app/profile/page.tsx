@@ -68,7 +68,7 @@ export default function ProfilePage() {
 
   // Compras y productos reales
   const [compras, setCompras] = useState<Compra[]>([]); // [{id, total, created_at, status, ...}]
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]); // [{order_id, product_name, flavor, flavor_id, quantity, ...}]
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]); // Correct type for order items
   const [comprasLoading, setComprasLoading] = useState(false);
 
   // Traer compras y productos del usuario
@@ -127,10 +127,24 @@ export default function ProfilePage() {
   const [comprasPage, setComprasPage] = useState(1);
   const comprasPerPage = 5;
   const comprasPageCount = Math.ceil(compras.length / comprasPerPage);
-  const comprasToShow = compras.slice((comprasPage - 1) * comprasPerPage, comprasPage * comprasPerPage);
+  const comprasToShow = compras.slice(
+    (comprasPage - 1) * comprasPerPage,
+    comprasPage * comprasPerPage
+  );
   
   const MIN_COMMENT_LENGTH = 10; // Minimum characters for a comment
 
+  // Filtros para valoraciones
+const [filterFlavor, setFilterFlavor] = useState('');
+const [filterDate, setFilterDate] = useState('');
+const [filterRating, setFilterRating] = useState('');
+
+const filteredReviews = valoracionesReal.filter((review) => {
+  const matchesFlavor = filterFlavor ? review.flavor?.name.includes(filterFlavor) : true;
+  const matchesDate = filterDate ? new Date(review.created_at).toLocaleDateString() === filterDate : true;
+  const matchesRating = filterRating ? review.rating === parseInt(filterRating) : true;
+  return matchesFlavor && matchesDate && matchesRating;
+});
 
   const handleLogout = async () => {
     await supabaseClient.auth.signOut();
@@ -192,6 +206,9 @@ export default function ProfilePage() {
   ? valoracionesReal.reduce((sum, v) => sum + v.rating, 0) / valoracionesReal.length
   : null;
 
+  const [purchaseDetailModalOpen, setPurchaseDetailModalOpen] = useState(false);
+  const [selectedPurchase, setSelectedPurchase] = useState<Compra | null>(null);
+
   if (loading) return <div className="p-8">Cargando perfil...</div>;
   if (!profile) return <div className="p-8">No se encontró el perfil.</div>;
 
@@ -213,6 +230,7 @@ export default function ProfilePage() {
           { label: 'Valoraciones', value: 'valoraciones' },
         ]}
         className="mb-6 flex-wrap"
+        role="tablist"
       />
       <Card className="p-4">
         {tab === 'datos' && (
@@ -271,46 +289,33 @@ export default function ProfilePage() {
                     <tr className="text-left text-gray-600">
                       <th className="py-2 px-2">Fecha</th>
                       <th className="py-2 px-2">Producto</th>
-                      <th className="py-2 px-2">Sabor</th>
                       <th className="py-2 px-2">Cantidad</th>
                       <th className="py-2 px-2">Acción</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {orderItems.map((item) => {
-                      const compra = compras.find((c) => c.id === item.order_id);
-                      if (!compra) return null;
-                      // Ver si ya fue valorado
-                      const yaValorado = valoracionesReal.some(v => v.flavor?.id === item.flavor_id);
+                    {comprasToShow.map((compra) => {
+                      const items = orderItems.filter((item) => item.order_id === compra.id);
                       return (
-                        <tr key={item.id} className="border-b last:border-0">
+                        <tr key={compra.id} className="border-b last:border-0">
                           <td className="py-2 px-2">{new Date(compra.created_at).toLocaleDateString()}</td>
-                          <td className="py-2 px-2">{item.product_name}</td>
-                          <td className="py-2 px-2">{item.flavor}</td>
-                          <td className="py-2 px-2">{item.quantity}</td>
                           <td className="py-2 px-2">
-                            {yaValorado ? (
-                              <span className="text-green-600 font-semibold flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                                Valorado
-                              </span>
-                            ) : (
-                              <Button size="sm" onClick={() => {
-                                setSelectedSabor({
-                                  compra,
-                                  sabor: item.flavor,
-                                  flavor_id: item.flavor_id,
-                                  product_name: item.product_name,
-                                });
-                                setOpenRatingModal(true);
-                                setRatingValue(0);
-                                setRatingComment('');
-                              }}>
-                                Valorar
-                              </Button>
-                            )}
+                            {items.map((item) => (
+                              <div key={item.id}>{item.product_name} ({item.flavor})</div>
+                            ))}
+                          </td>
+                          <td className="py-2 px-2">{items.reduce((sum, item) => sum + item.quantity, 0)}</td>
+                          <td className="py-2 px-2">
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                setSelectedPurchase(compra);
+                                setPurchaseDetailModalOpen(true);
+                              }}
+                              aria-label={`Ver detalles de la compra ${compra.id}`}
+                            >
+                              Ver Detalle
+                            </Button>
                           </td>
                         </tr>
                       );
@@ -319,6 +324,11 @@ export default function ProfilePage() {
                 </table>
               )}
             </div>
+            <PaginationSimple
+  page={comprasPage}
+  pageCount={comprasPageCount}
+  setPage={setComprasPage}
+/>
             {/* Modal de valoración */}
             <Dialog open={openRatingModal} onOpenChange={setOpenRatingModal}>
               <DialogContent>
@@ -401,117 +411,75 @@ export default function ProfilePage() {
         )}
         {tab === 'valoraciones' && (
           <section>
-            {averageRating !== null && (
-      <div className="mb-4 text-center">
-        <span className="text-lg font-semibold">Calificación promedio: </span>
-        <span className="text-yellow-500">{'★'.repeat(Math.round(averageRating))}{'☆'.repeat(5 - Math.round(averageRating))}</span>
-        <span className="text-sm text-gray-500 ml-2">({averageRating.toFixed(1)})</span>
-      </div>
-    )}
+            <div className="mb-4 flex gap-4">
+      <input
+        type="text"
+        placeholder="Filtrar por sabor"
+        value={filterFlavor}
+        onChange={(e) => setFilterFlavor(e.target.value)}
+        className="border p-2 rounded bg-gray-100 text-gray-900 placeholder-gray-500 focus:border-gray-600 focus:ring-2 focus:ring-primary/30"
+      />
+      <input
+        type="date"
+        value={filterDate}
+        onChange={(e) => setFilterDate(e.target.value)}
+        className="border p-2 rounded bg-gray-100 text-gray-900 placeholder-gray-500 focus:border-gray-600 focus:ring-2 focus:ring-primary/30"
+      />
+      <select
+        value={filterRating}
+        onChange={(e) => setFilterRating(e.target.value)}
+        className="border p-2 rounded bg-gray-100 text-gray-900 focus:border-gray-600 focus:ring-2 focus:ring-primary/30"
+      >
+        <option value="">Filtrar por calificación</option>
+        {[1, 2, 3, 4, 5].map((rating) => (
+          <option key={rating} value={rating}>{rating} estrellas</option>
+        ))}
+      </select>
+    </div>
             {valoracionesLoading ? (
               <div className="text-center text-gray-500 py-8">Cargando valoraciones...</div>
-            ) : valoracionesToShow.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">No hay valoraciones aún.</div>
+            ) : filteredReviews.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">No hay valoraciones que coincidan con los filtros.</div>
             ) : (
               <>
                 <div className="space-y-3">
-                  {valoracionesToShow.map((v, i) => (
-                    <div key={v.id} className="border rounded-lg p-3 bg-white group relative">
+                  {filteredReviews.map((v) => (
+                    <div key={v.id} className="border rounded-lg p-3 bg-white">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-semibold text-gray-800">{v.flavor?.name || 'Sabor desconocido'}</span>
                         <span className="text-yellow-500">{'★'.repeat(v.rating)}{'☆'.repeat(5 - v.rating)}</span>
                         <span className="text-xs text-gray-400 ml-2">{new Date(v.created_at).toLocaleDateString()}</span>
-                        <Button size="sm" variant="ghost" className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => {
-                          setEditRatingId(v.id);
-                          setEditRatingValue(v.rating);
-                          setEditRatingComment(v.comment);
-                          setEditModalOpen(true);
-                        }}>Editar</Button>
-                        <Button size="sm" variant="destructive" className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={async () => {
-                          setValoracionesLoading(true);
-                          const { error } = await supabaseClient.from('ratings').delete().eq('id', v.id);
-                          setValoracionesLoading(false);
-                          if (error) {
-                            toast.error('Error al eliminar valoración');
-                          } else {
-                            toast.success('Valoración eliminada');
-                            setTimeout(() => {
-                              if (tab && tab.toString() === 'valoraciones') {
-                                setTab('datos');
-                                setTimeout(() => setTab('valoraciones'), 100);
-                              }
-                            }, 300);
-                          }
-                        }}>Eliminar</Button>
                       </div>
                       <span className="text-sm text-gray-700">{v.comment}</span>
                     </div>
                   ))}
                 </div>
                 <PaginationSimple page={valoracionesPage} pageCount={valoracionesPageCount} setPage={setValoracionesPage} />
-                {/* Modal edición */}
-                <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Editar valoración</DialogTitle>
-                    </DialogHeader>
-                    <div className="mb-4 flex gap-1">
-                      {[1,2,3,4,5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          className={star <= editRatingValue ? 'text-yellow-500 text-2xl' : 'text-gray-300 text-2xl'}
-                          onClick={() => setEditRatingValue(star)}
-                          aria-label={`Dar ${star} estrellas`}
-                        >★</button>
-                      ))}
-                    </div>
-                    <div className="mb-4">
-                      <Label htmlFor="edit-comentario">Comentario</Label>
-                      <Input
-                        id="edit-comentario"
-                        value={editRatingComment}
-                        onChange={e => setEditRatingComment(e.target.value)}
-                        placeholder="Edita tu comentario"
-                      />
-                      {editRatingComment.length > 0 && editRatingComment.length < MIN_COMMENT_LENGTH && (
-                        <p className="text-red-500 text-sm">El comentario debe tener al menos {MIN_COMMENT_LENGTH} caracteres.</p>
-                      )}
-                    </div>
-                    <DialogFooter>
-                      <Button onClick={() => setEditModalOpen(false)} variant="secondary">Cancelar</Button>
-                      <Button
-                        disabled={editRatingValue === 0 || valoracionesLoading}
-                        onClick={async () => {
-                          if (!editRatingId) return;
-                          setValoracionesLoading(true);
-                          const { error } = await supabaseClient
-                            .from('ratings')
-                            .update({ rating: editRatingValue, comment: editRatingComment })
-                            .eq('id', editRatingId);
-                          setValoracionesLoading(false);
-                          setEditModalOpen(false);
-                          if (error) {
-                            toast.error('Error al editar valoración');
-                          } else {
-                            toast.success('¡Valoración actualizada!');
-                          }
-                          // Refrescar valoraciones
-                          setTimeout(() => {
-                            if (tab && tab.toString() === 'valoraciones') {
-                              setTab('datos');
-                              setTimeout(() => setTab('valoraciones'), 100);
-                            }
-                          }, 300);
-                        }}
-                      >{valoracionesLoading ? 'Guardando...' : 'Guardar cambios'}</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
               </>
             )}
           </section>
         )}
+        {/* Modal detalle de compra */}
+        <Dialog open={purchaseDetailModalOpen} onOpenChange={setPurchaseDetailModalOpen}>
+          <DialogContent role="dialog" aria-labelledby="purchase-detail-title">
+            <DialogHeader>
+              <DialogTitle id="purchase-detail-title">Detalle de la Compra</DialogTitle>
+            </DialogHeader>
+            {selectedPurchase && (
+              <div>
+                <p><strong>ID:</strong> {selectedPurchase.id}</p>
+                <p><strong>Total:</strong> ${selectedPurchase.total.toFixed(2)}</p>
+                <p><strong>Fecha:</strong> {new Date(selectedPurchase.created_at).toLocaleDateString()}</p>
+                <p><strong>Estado:</strong> {selectedPurchase.status}</p>
+              </div>
+            )}
+            <DialogFooter>
+              <Button onClick={() => setPurchaseDetailModalOpen(false)} variant="secondary" autoFocus>
+                Cerrar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </Card>
     </div>
   );
